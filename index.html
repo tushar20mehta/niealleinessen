@@ -115,6 +115,54 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        /* Neues Design für die Gästeverwaltung */
+        details {
+            margin-top: 15px;
+            background-color: #f1f3f5;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            color: #495057;
+        }
+
+        ul.guest-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+
+        ul.guest-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 8px 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            border: 1px solid #e9ecef;
+        }
+
+        .remove-btn {
+            background-color: transparent;
+            color: #ff6b6b;
+            border: none;
+            padding: 0;
+            width: auto;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .remove-btn:hover {
+            background-color: transparent;
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -154,57 +202,90 @@
 
         // Funktion: Wenn das Formular abgeschickt wird
         addMealForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Verhindert, dass die Seite neu lädt
+            event.preventDefault(); 
 
-            // Daten aus den Eingabefeldern holen
             const newMeal = {
-                id: Date.now(), // Erzeugt eine einzigartige ID
+                id: Date.now(), 
                 hostName: document.getElementById('hostName').value,
                 mealTitle: document.getElementById('mealTitle').value,
                 location: document.getElementById('location').value,
                 time: document.getElementById('time').value,
-                spots: parseInt(document.getElementById('spots').value)
+                spots: parseInt(document.getElementById('spots').value),
+                guests: [] // NEU: Eine leere Liste für die Gäste
             };
 
-            // Zum Array hinzufügen
             meals.push(newMeal);
-
-            // Formular wieder leeren
             addMealForm.reset();
-
-            // Liste neu aufbauen, damit das neue Essen sichtbar wird
             renderMeals();
         });
 
-        // Funktion: Jemand klickt auf "Teilnehmen"
+        // NEU: Funktion zum Teilnehmen (jetzt mit Namensabfrage)
         function joinMeal(mealId) {
-            // Finde das richtige Essen im Array
             const meal = meals.find(m => m.id === mealId);
             
             if (meal && meal.spots > 0) {
-                meal.spots -= 1; // Einen Platz abziehen
-                alert("Erfolgreich angemeldet! Guten Appetit.");
+                // Den Nutzer nach seinem Namen fragen
+                const guestName = prompt("Wie lautet dein Name?");
+                
+                // Nur wenn ein Name eingegeben wurde...
+                if (guestName && guestName.trim() !== "") {
+                    meal.guests.push(guestName.trim()); // Gast zur Liste hinzufügen
+                    meal.spots -= 1; // Einen Platz abziehen
+                    alert("Erfolgreich angemeldet! Guten Appetit.");
+                    renderMeals(); // Anzeige aktualisieren
+                }
+            }
+        }
+
+        // NEU: Funktion, um einen Gast wieder zu entfernen
+        function removeGuest(mealId, guestIndex) {
+            const meal = meals.find(m => m.id === mealId);
+            
+            if (meal) {
+                // Den Gast aus der Liste löschen und seinen Namen merken
+                const removedGuest = meal.guests.splice(guestIndex, 1)[0];
+                meal.spots += 1; // Der Platz wird wieder frei
+                
+                alert(`${removedGuest} wurde von der Gästeliste entfernt.`);
                 renderMeals(); // Anzeige aktualisieren
             }
         }
 
         // Funktion: Die Liste der Essen auf dem Bildschirm anzeigen
         function renderMeals() {
-            mealsContainer.innerHTML = ''; // Vorherige Liste löschen
+            mealsContainer.innerHTML = ''; 
 
             if (meals.length === 0) {
                 mealsContainer.innerHTML = '<p style="color: #888;">Momentan gibt es keine Angebote. Sei der Erste, der etwas anbietet!</p>';
                 return;
             }
 
-            // Für jedes Essen im Array eine Karte bauen
             meals.forEach(meal => {
                 const card = document.createElement('div');
                 card.className = 'meal-card';
 
-                // Prüfen, ob noch Plätze frei sind
                 const isFull = meal.spots === 0;
                 const buttonText = isFull ? 'Ausgebucht' : 'Teilnehmen';
+                
+                // NEU: Die Gästeliste als HTML generieren
+                let guestsHTML = '';
+                if (meal.guests.length > 0) {
+                    let listItems = meal.guests.map((guest, index) => {
+                        return `<li>
+                                  ${guest} 
+                                  <button class="remove-btn" onclick="removeGuest(${meal.id}, ${index})" title="Gast entfernen">❌</button>
+                                </li>`;
+                    }).join('');
+
+                    guestsHTML = `
+                        <details>
+                            <summary>Gäste verwalten (${meal.guests.length})</summary>
+                            <ul class="guest-list">
+                                ${listItems}
+                            </ul>
+                        </details>
+                    `;
+                }
                 
                 card.innerHTML = `
                     <h3>${meal.mealTitle}</h3>
@@ -219,13 +300,13 @@
                         ${isFull ? 'disabled' : ''}>
                         ${buttonText}
                     </button>
-                `;
+                    ${guestsHTML} `;
 
                 mealsContainer.appendChild(card);
             });
         }
 
-        // App starten: Einmal die leere Liste (oder Dummy-Daten) rendern
+        // App starten
         renderMeals();
     </script>
 </body>
