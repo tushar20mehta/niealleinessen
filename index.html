@@ -1,396 +1,232 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NieAlleinEssen – Nie wieder alleine essen</title>
-  <meta name="description" content="Finde Menschen in deiner Nähe, die gerne gemeinsam kochen und essen. Oder lade selbst zum Abendessen ein." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translate(-50%, 12px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: #E07A3A !important;
-      box-shadow: 0 0 0 3px #FDEBD3 !important;
-      outline: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeverEatAlone</title>
+    <style>
+        /* CSS: Hier wird das Design der App festgelegt */
+        :root {
+            --primary-color: #ff6b6b;
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Formular Design */
+        .host-form {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .host-form h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #fa5252;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Liste der Essen Design */
+        .meals-list h2 {
+            font-size: 1.2rem;
+        }
+
+        .meal-card {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .meal-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+        }
+
+        .meal-details {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .meal-details span {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useMemo } = React;
 
-    const SAMPLE_DINNERS = [
-      {
-        id: 1,
-        title: "Pasta-Abend in Kreuzberg",
-        host: "Maria",
-        date: "2026-04-10",
-        time: "19:00",
-        city: "Berlin",
-        district: "Kreuzberg",
-        maxGuests: 4,
-        guests: ["Tom", "Lena"],
-        description: "Ich koche frische Tagliatelle mit Pesto und Salat. Bringt gerne Wein mit!",
-        cuisine: "Italienisch",
-      },
-      {
-        id: 2,
-        title: "Gemeinsam Curry kochen",
-        host: "Ahmed",
-        date: "2026-04-12",
-        time: "18:30",
-        city: "München",
-        district: "Schwabing",
-        maxGuests: 3,
-        guests: ["Sophie"],
-        description: "Wir kochen zusammen ein Thai-Curry. Vegetarisch & vegan möglich. Keine Vorkenntnisse nötig!",
-        cuisine: "Thailändisch",
-      },
-      {
-        id: 3,
-        title: "Sonntagsbraten für alle",
-        host: "Oma Gertrud",
-        date: "2026-04-13",
-        time: "12:00",
-        city: "Hamburg",
-        district: "Eimsbüttel",
-        maxGuests: 6,
-        guests: ["Felix", "Jana", "Markus"],
-        description: "Klassischer Sonntagsbraten mit Knödeln und Rotkohl. Wie bei Oma – weil jeder ein Zuhause verdient.",
-        cuisine: "Deutsch",
-      },
-      {
-        id: 4,
-        title: "Sushi-Abend",
-        host: "Yuki",
-        date: "2026-04-14",
-        time: "19:30",
-        city: "Berlin",
-        district: "Mitte",
-        maxGuests: 5,
-        guests: [],
-        description: "Ich zeige euch, wie man Sushi selbst rollt. Alle Zutaten sind da – kommt einfach vorbei!",
-        cuisine: "Japanisch",
-      },
-    ];
+    <div class="app-container">
+        <h1>NeverEatAlone 🍽️</h1>
+        <p class="subtitle">Gemeinsam essen, statt alleine bleiben.</p>
 
-    const CITIES = ["Alle Städte", "Berlin", "München", "Hamburg", "Köln", "Frankfurt"];
-
-    const IconUsers = () => (
-      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    );
-    const IconClock = () => (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-      </svg>
-    );
-    const IconMapPin = () => (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-      </svg>
-    );
-    const IconPlus = () => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
-        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-      </svg>
-    );
-    const IconHeart = () => (
-      <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    );
-    const IconChef = () => (
-      <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z" /><line x1="6" y1="17" x2="18" y2="17" />
-      </svg>
-    );
-
-    const colors = {
-      warmBg: "#FFF8F0",
-      warmBgAlt: "#FFF1E0",
-      accent: "#E07A3A",
-      accentHover: "#C9612A",
-      accentLight: "#FDEBD3",
-      text: "#3D2C1E",
-      textMuted: "#8B7355",
-      card: "#FFFFFF",
-      cardBorder: "#F0DCC8",
-      success: "#5A9E6F",
-      successBg: "#EAF5ED",
-    };
-
-    const baseBtn = {
-      border: "none",
-      borderRadius: "12px",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      fontWeight: 600,
-      transition: "all 0.2s ease",
-    };
-
-    function Navbar({ page, setPage }) {
-      return (
-        <nav style={{ background: colors.warmBg, borderBottom: `2px solid ${colors.cardBorder}`, padding: "0 24px", position: "sticky", top: 0, zIndex: 100 }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", color: colors.accent }} onClick={() => setPage("home")}>
-              <IconChef />
-              <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>NieAlleinEssen</span>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[{ key: "home", label: "Start" }, { key: "dinners", label: "Abendessen" }, { key: "create", label: "Einladen" }].map((item) => (
-                <button key={item.key} onClick={() => setPage(item.key)} style={{ ...baseBtn, padding: "8px 18px", fontSize: 15, background: page === item.key ? colors.accent : "transparent", color: page === item.key ? "#fff" : colors.text }}>{item.label}</button>
-              ))}
-            </div>
-          </div>
-        </nav>
-      );
-    }
-
-    function HeroSection({ setPage }) {
-      return (
-        <section style={{ background: `linear-gradient(135deg, ${colors.warmBg} 0%, ${colors.warmBgAlt} 100%)`, padding: "80px 24px 60px", textAlign: "center" }}>
-          <div style={{ maxWidth: 700, margin: "0 auto" }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🍽️</div>
-            <h1 style={{ fontSize: 44, fontWeight: 800, color: colors.text, lineHeight: 1.15, margin: "0 0 16px" }}>Nie wieder <span style={{ color: colors.accent }}>alleine</span> essen.</h1>
-            <p style={{ fontSize: 20, color: colors.textMuted, lineHeight: 1.6, margin: "0 0 36px", maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>Finde Menschen in deiner Nähe, die gerne gemeinsam kochen und essen. Oder lade selbst zum Abendessen ein – es ist ganz einfach.</p>
-            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-              <button onClick={() => setPage("dinners")} style={{ ...baseBtn, padding: "14px 32px", fontSize: 17, background: colors.accent, color: "#fff", boxShadow: "0 4px 14px rgba(224,122,58,0.35)" }} onMouseEnter={(e) => (e.target.style.background = colors.accentHover)} onMouseLeave={(e) => (e.target.style.background = colors.accent)}>Abendessen finden</button>
-              <button onClick={() => setPage("create")} style={{ ...baseBtn, padding: "14px 32px", fontSize: 17, background: "#fff", color: colors.accent, border: `2px solid ${colors.accent}` }} onMouseEnter={(e) => (e.target.style.background = colors.accentLight)} onMouseLeave={(e) => (e.target.style.background = "#fff")}>Selbst einladen</button>
-            </div>
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 48, marginTop: 56, flexWrap: "wrap" }}>
-            {[{ num: "1.247", label: "Gemeinsame Essen" }, { num: "3.892", label: "Mitglieder" }, { num: "42", label: "Städte" }].map((s) => (
-              <div key={s.label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 32, fontWeight: 800, color: colors.accent }}>{s.num}</div>
-                <div style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    function HowItWorks() {
-      const steps = [
-        { emoji: "🔍", title: "Finde ein Abendessen", desc: "Stöbere durch offene Einladungen in deiner Stadt." },
-        { emoji: "✋", title: "Melde dich an", desc: "Klicke auf Teilnehmen – der Gastgeber freut sich auf dich." },
-        { emoji: "🍳", title: "Gemeinsam genießen", desc: "Koche, esse und lerne neue Menschen kennen." },
-      ];
-      return (
-        <section style={{ padding: "64px 24px", background: "#fff" }}>
-          <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-            <h2 style={{ fontSize: 30, fontWeight: 700, color: colors.text, margin: "0 0 40px" }}>So funktioniert's</h2>
-            <div style={{ display: "flex", gap: 32, justifyContent: "center", flexWrap: "wrap" }}>
-              {steps.map((s, i) => (
-                <div key={i} style={{ flex: "1 1 240px", maxWidth: 280, padding: 24, borderRadius: 16, background: colors.warmBg }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>{s.emoji}</div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: colors.text, margin: "0 0 8px" }}>{s.title}</h3>
-                  <p style={{ fontSize: 15, color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    function DinnerCard({ dinner, onJoin }) {
-      const spotsLeft = dinner.maxGuests - dinner.guests.length;
-      const isFull = spotsLeft <= 0;
-      const dateObj = new Date(dinner.date + "T00:00:00");
-      const dateStr = dateObj.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
-      return (
-        <div style={{ background: colors.card, border: `1.5px solid ${colors.cardBorder}`, borderRadius: 18, padding: 24, display: "flex", flexDirection: "column", gap: 12, transition: "box-shadow 0.2s ease, transform 0.2s ease", cursor: "default" }}
-          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 8px 28px rgba(139,115,85,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ background: colors.accentLight, color: colors.accent, fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>{dinner.cuisine}</span>
-            {isFull && <span style={{ background: "#fee", color: "#c44", fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 20 }}>Voll</span>}
-          </div>
-          <h3 style={{ fontSize: 19, fontWeight: 700, color: colors.text, margin: 0 }}>{dinner.title}</h3>
-          <p style={{ fontSize: 14, color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>{dinner.description}</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconClock /> {dateStr}, {dinner.time} Uhr</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconMapPin /> {dinner.district}, {dinner.city}</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconUsers /> {dinner.guests.length}/{dinner.maxGuests} Gäste</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: colors.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: colors.accent }}>{dinner.host[0]}</div>
-            <span style={{ fontSize: 14, color: colors.text }}><strong>{dinner.host}</strong> lädt ein</span>
-          </div>
-          <div style={{ marginTop: 4 }}>
-            <div style={{ height: 6, borderRadius: 3, background: colors.warmBgAlt, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${(dinner.guests.length / dinner.maxGuests) * 100}%`, background: isFull ? "#c44" : colors.success, borderRadius: 3, transition: "width 0.3s ease" }} />
-            </div>
-            <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>{isFull ? "Keine Plätze mehr frei" : `Noch ${spotsLeft} ${spotsLeft === 1 ? "Platz" : "Plätze"} frei`}</div>
-          </div>
-          <button onClick={() => !isFull && onJoin(dinner.id)} disabled={isFull} style={{ ...baseBtn, marginTop: 4, padding: "11px 0", fontSize: 15, background: isFull ? "#e0d6cc" : colors.accent, color: isFull ? "#a09080" : "#fff", cursor: isFull ? "not-allowed" : "pointer", width: "100%" }}
-            onMouseEnter={(e) => { if (!isFull) e.target.style.background = colors.accentHover; }}
-            onMouseLeave={(e) => { if (!isFull) e.target.style.background = colors.accent; }}>
-            {isFull ? "Ausgebucht" : "Teilnehmen"}
-          </button>
-        </div>
-      );
-    }
-
-    function DinnersPage({ dinners, onJoin }) {
-      const [city, setCity] = useState("Alle Städte");
-      const [search, setSearch] = useState("");
-      const filtered = useMemo(() => {
-        return dinners.filter((d) => {
-          const matchCity = city === "Alle Städte" || d.city === city;
-          const matchSearch = search === "" || d.title.toLowerCase().includes(search.toLowerCase()) || d.description.toLowerCase().includes(search.toLowerCase());
-          return matchCity && matchSearch;
-        });
-      }, [dinners, city, search]);
-      return (
-        <section style={{ padding: "40px 24px 64px", background: colors.warmBg, minHeight: "60vh" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: colors.text, margin: "0 0 24px" }}>Offene Abendessen</h2>
-            <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
-              <input type="text" placeholder="Suche nach Abendessen..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: "1 1 240px", padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", outline: "none", background: "#fff" }} />
-              <select value={city} onChange={(e) => setCity(e.target.value)} style={{ padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", background: "#fff", cursor: "pointer" }}>
-                {CITIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-            {filtered.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0", color: colors.textMuted }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🍽️</div>
-                <p style={{ fontSize: 18 }}>Keine Abendessen gefunden. Lade doch selbst ein!</p>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
-                {filtered.map((d) => <DinnerCard key={d.id} dinner={d} onJoin={onJoin} />)}
-              </div>
-            )}
-          </div>
-        </section>
-      );
-    }
-
-    function CreateDinnerPage({ onCreate }) {
-      const [form, setForm] = useState({ title: "", description: "", date: "", time: "19:00", city: "Berlin", district: "", maxGuests: 4, cuisine: "Deutsch", host: "" });
-      const [submitted, setSubmitted] = useState(false);
-      const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!form.title || !form.date || !form.host || !form.district) return;
-        onCreate({ ...form, id: Date.now(), maxGuests: parseInt(form.maxGuests, 10), guests: [] });
-        setSubmitted(true);
-      };
-      if (submitted) {
-        return (
-          <section style={{ padding: "80px 24px", background: colors.warmBg, textAlign: "center", minHeight: "60vh" }}>
-            <div style={{ maxWidth: 480, margin: "0 auto", background: colors.successBg, borderRadius: 20, padding: 40 }}>
-              <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
-              <h2 style={{ fontSize: 26, fontWeight: 700, color: colors.success, margin: "0 0 12px" }}>Abendessen erstellt!</h2>
-              <p style={{ fontSize: 16, color: colors.textMuted, lineHeight: 1.5 }}>Dein Abendessen <strong>{"\u201E"}{form.title}{"\u201C"}</strong> ist jetzt sichtbar.</p>
-              <button onClick={() => { setForm({ title: "", description: "", date: "", time: "19:00", city: "Berlin", district: "", maxGuests: 4, cuisine: "Deutsch", host: "" }); setSubmitted(false); }} style={{ ...baseBtn, marginTop: 20, padding: "12px 28px", fontSize: 15, background: colors.success, color: "#fff" }}>Noch eins erstellen</button>
-            </div>
-          </section>
-        );
-      }
-      const inputStyle = { width: "100%", padding: "11px 14px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", outline: "none", boxSizing: "border-box", background: "#fff" };
-      const labelStyle = { display: "block", fontSize: 14, fontWeight: 600, color: colors.text, marginBottom: 6 };
-      return (
-        <section style={{ padding: "40px 24px 64px", background: colors.warmBg, minHeight: "60vh" }}>
-          <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: colors.text, margin: "0 0 8px", display: "flex", alignItems: "center", gap: 10 }}><IconPlus /> Zum Abendessen einladen</h2>
-            <p style={{ fontSize: 15, color: colors.textMuted, margin: "0 0 28px" }}>Teile dein Essen und lerne neue Menschen kennen.</p>
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20, background: "#fff", padding: 28, borderRadius: 18, border: `1.5px solid ${colors.cardBorder}` }}>
-              <div><label style={labelStyle}>Dein Name *</label><input type="text" placeholder="z.B. Maria" value={form.host} onChange={handleChange("host")} style={inputStyle} required /></div>
-              <div><label style={labelStyle}>Titel des Abendessens *</label><input type="text" placeholder="z.B. Pasta-Abend bei mir" value={form.title} onChange={handleChange("title")} style={inputStyle} required /></div>
-              <div><label style={labelStyle}>Beschreibung</label><textarea placeholder="Was wird gekocht? Was sollen Gäste mitbringen?" value={form.description} onChange={handleChange("description")} rows={3} style={{ ...inputStyle, resize: "vertical" }} /></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div><label style={labelStyle}>Datum *</label><input type="date" value={form.date} onChange={handleChange("date")} style={inputStyle} required /></div>
-                <div><label style={labelStyle}>Uhrzeit</label><input type="time" value={form.time} onChange={handleChange("time")} style={inputStyle} /></div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div><label style={labelStyle}>Stadt *</label><select value={form.city} onChange={handleChange("city")} style={inputStyle}>{CITIES.filter((c) => c !== "Alle Städte").map((c) => <option key={c}>{c}</option>)}</select></div>
-                <div><label style={labelStyle}>Stadtteil *</label><input type="text" placeholder="z.B. Kreuzberg" value={form.district} onChange={handleChange("district")} style={inputStyle} required /></div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div><label style={labelStyle}>Max. Gäste</label><input type="number" min={1} max={20} value={form.maxGuests} onChange={handleChange("maxGuests")} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Küche</label><select value={form.cuisine} onChange={handleChange("cuisine")} style={inputStyle}>{["Deutsch", "Italienisch", "Thailändisch", "Japanisch", "Indisch", "Mexikanisch", "Mediterran", "Vegan", "Andere"].map((c) => <option key={c}>{c}</option>)}</select></div>
-              </div>
-              <button type="submit" style={{ ...baseBtn, padding: "14px 0", fontSize: 16, background: colors.accent, color: "#fff", marginTop: 4 }} onMouseEnter={(e) => (e.target.style.background = colors.accentHover)} onMouseLeave={(e) => (e.target.style.background = colors.accent)}>Abendessen veröffentlichen</button>
+        <div class="host-form">
+            <h2>Essen anbieten (Host werden)</h2>
+            <form id="addMealForm">
+                <input type="text" id="hostName" placeholder="Dein Name" required>
+                <input type="text" id="mealTitle" placeholder="Was gibt es zu essen? (z.B. Lasagne)" required>
+                <input type="text" id="location" placeholder="Wo? (z.B. Berlin, Kreuzberg)" required>
+                <input type="time" id="time" required>
+                <input type="number" id="spots" placeholder="Anzahl freie Plätze" min="1" max="20" required>
+                <button type="submit">Essen eintragen</button>
             </form>
-          </div>
-        </section>
-      );
-    }
-
-    function Footer() {
-      return (
-        <footer style={{ background: colors.text, color: "rgba(255,255,255,0.6)", padding: "40px 24px", textAlign: "center" }}>
-          <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12, color: colors.accent }}>
-              <IconHeart />
-              <span style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>NieAlleinEssen</span>
-            </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>Gemeinsam essen, gemeinsam leben. Eine Initiative gegen Einsamkeit – ein Abendessen nach dem anderen.</p>
-            <p style={{ fontSize: 12, marginTop: 16, opacity: 0.5 }}>© 2026 NieAlleinEssen. Mit Liebe gemacht.</p>
-          </div>
-        </footer>
-      );
-    }
-
-    function JoinedToast({ name }) {
-      return (
-        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: colors.success, color: "#fff", padding: "14px 28px", borderRadius: 14, fontSize: 15, fontWeight: 600, zIndex: 999, boxShadow: "0 6px 20px rgba(90,158,111,0.4)", animation: "fadeInUp 0.3s ease" }}>
-          Du nimmst jetzt an „{name}" teil! 🎉
         </div>
-      );
-    }
 
-    function App() {
-      const [page, setPage] = useState("home");
-      const [dinners, setDinners] = useState(SAMPLE_DINNERS);
-      const [toast, setToast] = useState(null);
-      const handleJoin = (id) => {
-        setDinners((prev) => prev.map((d) => {
-          if (d.id === id && d.guests.length < d.maxGuests) {
-            const names = ["Du", "Alex", "Sam", "Chris", "Pat"];
-            const name = names[Math.floor(Math.random() * names.length)];
-            return { ...d, guests: [...d.guests, name] };
-          }
-          return d;
-        }));
-        const dinner = dinners.find((d) => d.id === id);
-        if (dinner && dinner.guests.length < dinner.maxGuests) {
-          setToast(dinner.title);
-          setTimeout(() => setToast(null), 3000);
+        <div class="meals-list">
+            <h2>Aktuelle Angebote</h2>
+            <div id="mealsContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript: Hier passiert die Logik der App
+
+        // Unsere "Pseudo-Datenbank" im Browser-Speicher (Array)
+        let meals = [];
+
+        // Die Elemente aus dem HTML laden
+        const addMealForm = document.getElementById('addMealForm');
+        const mealsContainer = document.getElementById('mealsContainer');
+
+        // Funktion: Wenn das Formular abgeschickt wird
+        addMealForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Verhindert, dass die Seite neu lädt
+
+            // Daten aus den Eingabefeldern holen
+            const newMeal = {
+                id: Date.now(), // Erzeugt eine einzigartige ID
+                hostName: document.getElementById('hostName').value,
+                mealTitle: document.getElementById('mealTitle').value,
+                location: document.getElementById('location').value,
+                time: document.getElementById('time').value,
+                spots: parseInt(document.getElementById('spots').value)
+            };
+
+            // Zum Array hinzufügen
+            meals.push(newMeal);
+
+            // Formular wieder leeren
+            addMealForm.reset();
+
+            // Liste neu aufbauen, damit das neue Essen sichtbar wird
+            renderMeals();
+        });
+
+        // Funktion: Jemand klickt auf "Teilnehmen"
+        function joinMeal(mealId) {
+            // Finde das richtige Essen im Array
+            const meal = meals.find(m => m.id === mealId);
+            
+            if (meal && meal.spots > 0) {
+                meal.spots -= 1; // Einen Platz abziehen
+                alert("Erfolgreich angemeldet! Guten Appetit.");
+                renderMeals(); // Anzeige aktualisieren
+            }
         }
-      };
-      const handleCreate = (newDinner) => {
-        setDinners((prev) => [newDinner, ...prev]);
-        setPage("dinners");
-      };
-      return (
-        <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", color: colors.text, minHeight: "100vh", background: colors.warmBg }}>
-          <Navbar page={page} setPage={setPage} />
-          {page === "home" && (<><HeroSection setPage={setPage} /><HowItWorks /></>)}
-          {page === "dinners" && <DinnersPage dinners={dinners} onJoin={handleJoin} />}
-          {page === "create" && <CreateDinnerPage onCreate={handleCreate} />}
-          <Footer />
-          {toast && <JoinedToast name={toast} />}
-        </div>
-      );
-    }
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
+        // Funktion: Die Liste der Essen auf dem Bildschirm anzeigen
+        function renderMeals() {
+            mealsContainer.innerHTML = ''; // Vorherige Liste löschen
+
+            if (meals.length === 0) {
+                mealsContainer.innerHTML = '<p style="color: #888;">Momentan gibt es keine Angebote. Sei der Erste, der etwas anbietet!</p>';
+                return;
+            }
+
+            // Für jedes Essen im Array eine Karte bauen
+            meals.forEach(meal => {
+                const card = document.createElement('div');
+                card.className = 'meal-card';
+
+                // Prüfen, ob noch Plätze frei sind
+                const isFull = meal.spots === 0;
+                const buttonText = isFull ? 'Ausgebucht' : 'Teilnehmen';
+                
+                card.innerHTML = `
+                    <h3>${meal.mealTitle}</h3>
+                    <div class="meal-details">
+                        <span><strong>Host:</strong> ${meal.hostName}</span>
+                        <span><strong>Ort:</strong> ${meal.location}</span>
+                        <span><strong>Uhrzeit:</strong> ${meal.time} Uhr</span>
+                        <span><strong>Freie Plätze:</strong> ${meal.spots}</span>
+                    </div>
+                    <button 
+                        onclick="joinMeal(${meal.id})" 
+                        ${isFull ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
+                `;
+
+                mealsContainer.appendChild(card);
+            });
+        }
+
+        // App starten: Einmal die leere Liste (oder Dummy-Daten) rendern
+        renderMeals();
+    </script>
 </body>
 </html>
