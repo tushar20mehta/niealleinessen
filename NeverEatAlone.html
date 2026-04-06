@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NeverEatAlone</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; overflow-x: hidden; }
+  input, textarea, button { font-family: inherit; }
+  .gradient-bg { background: linear-gradient(135deg, #f97316, #e11d48, #9333ea); }
+  .gradient-btn { background: linear-gradient(to right, #f97316, #e11d48); }
+  .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .card-shadow-lg { box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  .animate-fade { animation: fadeIn 0.3s ease-out; }
+  .animate-slide-up { animation: slideUp 0.3s ease-out; }
+  .animate-shake { animation: shake 0.4s ease-out; }
+  .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { useState, useEffect, useReducer } = React;
+
+// ══════════════════════════════════════════════
+const APP_PASSWORD = "neveralone2026";
+const CITY = "Aachen";
+
+const USERS = [
+  { id:1, name:"Tushar", avatar:"T", bio:"Liebt indisches Essen & gute Gespräche", rating:4.8, color:"#f97316" },
+  { id:2, name:"Lena", avatar:"L", bio:"Veganerin, kocht leidenschaftlich gern", rating:4.9, color:"#e11d48" },
+  { id:3, name:"Max", avatar:"M", bio:"Hobbykoch, probiert ständig Neues", rating:4.7, color:"#3b82f6" },
+  { id:4, name:"Sophie", avatar:"S", bio:"Neue in der Stadt, liebt Sushi", rating:4.6, color:"#9333ea" },
+  { id:5, name:"Jonas", avatar:"J", bio:"Student, immer hungrig, immer gesprächig", rating:4.5, color:"#22c55e" },
+  { id:6, name:"Mia", avatar:"M", bio:"Foodie & Wissenschaftlerin", rating:4.9, color:"#14b8a6" },
+];
+
+const INIT_DINNERS = [
+  { id:1, hostId:2, title:"Veganes Thai-Curry", date:"Heute, 19:00", location:"Aachen-Mitte", spots:3, cuisine:"Thai", flag:"🇹🇭", desc:"Selbstgemachtes grünes Curry mit Jasminreis und frischem Gemüse. Alles vegan!", tags:["Vegan","Selbstgekocht"], attendees:[2] },
+  { id:2, hostId:3, title:"Pizza-Abend mit Sauerteig", date:"Morgen, 18:30", location:"Pontstraße", spots:4, cuisine:"Italienisch", flag:"🇮🇹", desc:"Ich backe Sauerteig-Pizza im Ofen – ihr bringt gute Laune mit!", tags:["Selbstgekocht","Gesellig"], attendees:[3,5] },
+  { id:3, hostId:4, title:"Sushi bestellen & Netflix", date:"Fr, 20:00", location:"Eupener Str.", spots:3, cuisine:"Japanisch", flag:"🇯🇵", desc:"Gemeinsam Sushi bestellen, chillen und eine Serie schauen. Spontan & entspannt.", tags:["Bestellen","Gemütlich"], attendees:[4] },
+  { id:4, hostId:6, title:"Indischer Kochabend", date:"Sa, 18:00", location:"Rothe Erde", spots:5, cuisine:"Indisch", flag:"🇮🇳", desc:"Wir kochen zusammen Butter Chicken und Naan. Anfänger willkommen!", tags:["Zusammen kochen","Anfängerfreundlich"], attendees:[6] },
+];
+
+const CUISINES = ["Alle","Italienisch","Japanisch","Indisch","Thai","Mexikanisch","Deutsch"];
+const FLAGS = { Alle:"🍽️", Italienisch:"🇮🇹", Japanisch:"🇯🇵", Indisch:"🇮🇳", Thai:"🇹🇭", Mexikanisch:"🇲🇽", Deutsch:"🇩🇪" };
+
+// SVG Icons (inline to avoid dependencies)
+const Icon = ({ d, size=20, color="currentColor", fill="none", strokeWidth=2 }) =>
+  h("svg", { width:size, height:size, viewBox:"0 0 24 24", fill:fill, stroke:color, strokeWidth:strokeWidth, strokeLinecap:"round", strokeLinejoin:"round" }, d);
+
+const MapPinIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" }), h("circle", { cx:"12", cy:"10", r:"3" })) });
+const ClockIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("circle", { cx:"12", cy:"12", r:"10" }), h("polyline", { points:"12 6 12 12 16 14" })) });
+const UsersIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }), h("circle", { cx:"9", cy:"7", r:"4" }), h("path", { d:"M22 21v-2a4 4 0 0 0-3-3.87" }), h("path", { d:"M16 3.13a4 4 0 0 1 0 7.75" })) });
+const SearchIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("circle", { cx:"11", cy:"11", r:"8" }), h("line", { x1:"21", y1:"21", x2:"16.65", y2:"16.65" })) });
+const StarIcon = (p) => h(Icon, { ...p, d:h("polygon", { points:"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" }), fill:"#eab308", color:"#eab308" });
+const PlusIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"12", y1:"5", x2:"12", y2:"19" }), h("line", { x1:"5", y1:"12", x2:"19", y2:"12" })) });
+const XIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"18", y1:"6", x2:"6", y2:"18" }), h("line", { x1:"6", y1:"6", x2:"18", y2:"18" })) });
+const CheckIcon = (p) => h(Icon, { ...p, d:h("polyline", { points:"20 6 9 17 4 12" }) });
+const ArrowLeftIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"19", y1:"12", x2:"5", y2:"12" }), h("polyline", { points:"12 19 5 12 12 5" })) });
+const LockIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("rect", { x:"3", y:"11", width:"18", height:"11", rx:"2", ry:"2" }), h("path", { d:"M7 11V7a5 5 0 0 1 10 0v4" })) });
+const LogOutIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }), h("polyline", { points:"16 17 21 12 16 7" }), h("line", { x1:"21", y1:"12", x2:"9", y2:"12" })) });
+const TrashIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("polyline", { points:"3 6 5 6 21 6" }), h("path", { d:"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" })) });
+const UtensilsIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }), h("path", { d:"M7 2v20" }), h("path", { d:"M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" })) });
+const HeartIcon = (p) => h(Icon, { ...p, d:h("path", { d:"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" }) });
+const ChatIcon = (p) => h(Icon, { ...p, d:h("path", { d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }) });
+
+// Avatar
+function Av({ user, size=44 }) {
+  return h("div", { style:{ width:size, height:size, borderRadius:"50%", background:user.color, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:size*0.4, flexShrink:0 } }, user.avatar);
+}
+
+// Reducer
+function reducer(s, a) {
+  switch(a.type) {
+    case "JOIN": return { ...s, dinners: s.dinners.map(d => d.id===a.id && !d.attendees.includes(s.uid) ? {...d, attendees:[...d.attendees, s.uid]} : d) };
+    case "LEAVE": return { ...s, dinners: s.dinners.map(d => d.id===a.id ? {...d, attendees:d.attendees.filter(x=>x!==s.uid)} : d) };
+    case "CREATE": return { ...s, dinners: [{ ...a.dinner, id: Date.now(), hostId:s.uid, attendees:[s.uid] }, ...s.dinners] };
+    case "DELETE": return { ...s, dinners: s.dinners.filter(d=>d.id!==a.id) };
+    case "SET_USER": return { ...s, uid: a.uid };
+    default: return s;
+  }
+}
+
+// ══════════════════════════════════════════════
+// APP
+// ══════════════════════════════════════════════
+function App() {
+  const [view, setView] = useState("splash");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [detailId, setDetailId] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [filter, setFilter] = useState("Alle");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState(null);
+  const [tab, setTab] = useState("discover");
+  const [pw, setPw] = useState("");
+  const [pwErr, setPwErr] = useState(false);
+  const [pwShake, setPwShake] = useState(false);
+
+  const [s, dispatch] = useReducer(reducer, { dinners: INIT_DINNERS, uid: null });
+
+  useEffect(() => { if(view==="splash") { const t=setTimeout(()=>setView("login"),2000); return ()=>clearTimeout(t); } }, [view]);
+
+  const flash = (msg) => { setToast(msg); setTimeout(()=>setToast(null), 3000); };
+  const user = USERS.find(u=>u.id===s.uid);
+  const myDinners = s.dinners.filter(d=>d.attendees.includes(s.uid));
+
+  const filtered = s.dinners.filter(d => {
+    if(filter!=="Alle" && d.cuisine!==filter) return false;
+    if(search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  // ── SPLASH ──
+  if(view==="splash") return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"} },
+    h("div", { style:{textAlign:"center"} },
+      h("div", { className:"animate-pulse", style:{fontSize:80,marginBottom:20} }, "🍽️"),
+      h("h1", { style:{fontSize:42,fontWeight:800,color:"#fff",fontFamily:"Georgia,serif",marginBottom:8} }, "NeverEatAlone"),
+      h("p", { style:{fontSize:18,color:"rgba(255,255,255,0.8)"} }, "Gemeinsam essen. Freunde finden.")
+    )
+  );
+
+  // ── LOGIN ──
+  if(!loggedIn) return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24} },
+    h("div", { className:`animate-fade ${pwShake?"animate-shake":""}`, style:{background:"#fff",borderRadius:24,padding:32,width:"100%",maxWidth:380,boxShadow:"0 25px 50px rgba(0,0,0,0.2)"} },
+      h("div", { style:{textAlign:"center",marginBottom:32} },
+        h("div", { style:{fontSize:56,marginBottom:12} }, "🍽️"),
+        h("h1", { style:{fontSize:28,fontWeight:800,color:"#1e293b",fontFamily:"Georgia,serif"} }, "NeverEatAlone"),
+        h("p", { style:{color:"#94a3b8",marginTop:8} }, "Gemeinsam essen. Freunde finden.")
+      ),
+      h("form", { onSubmit: e => { e.preventDefault(); if(pw===APP_PASSWORD){setLoggedIn(true);setView("selectUser")} else {setPwErr(true);setPwShake(true);setTimeout(()=>setPwShake(false),500)} } },
+        h("label", { style:{display:"block",fontSize:14,fontWeight:500,color:"#64748b",marginBottom:8} }, "Passwort eingeben"),
+        h("div", { style:{position:"relative",marginBottom:8} },
+          h("div", { style:{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"} }, h(LockIcon, { size:18, color:"#94a3b8" })),
+          h("input", { type:"password", value:pw, onChange:e=>{setPw(e.target.value);setPwErr(false)}, placeholder:"Geheimes Freundes-Passwort", autoFocus:true,
+            style:{width:"100%",padding:"14px 16px 14px 44px",borderRadius:12,border:`2px solid ${pwErr?"#f87171":"#e2e8f0"}`,fontSize:16,outline:"none",background:pwErr?"#fef2f2":"#fff"} })
+        ),
+        pwErr && h("p", { style:{color:"#ef4444",fontSize:13,marginBottom:12} }, "Falsches Passwort. Frag deine Freunde!"),
+        h("button", { type:"submit", className:"gradient-btn", style:{width:"100%",padding:14,borderRadius:12,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",marginTop:8} },
+          "Eintreten"
+        )
+      ),
+      h("p", { style:{textAlign:"center",color:"#cbd5e1",fontSize:12,marginTop:20} }, "Nur mit Einladung. Frag einen Freund nach dem Passwort.")
+    )
+  );
+
+  // ── USER SELECT ──
+  if(!s.uid) return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24} },
+    h("div", { className:"animate-fade", style:{background:"#fff",borderRadius:24,padding:32,width:"100%",maxWidth:400,boxShadow:"0 25px 50px rgba(0,0,0,0.2)"} },
+      h("div", { style:{textAlign:"center",marginBottom:24} },
+        h("h2", { style:{fontSize:24,fontWeight:800,color:"#1e293b"} }, "Wer bist du?"),
+        h("p", { style:{color:"#94a3b8",marginTop:4} }, "Wähle deinen Namen")
+      ),
+      h("div", { style:{display:"flex",flexDirection:"column",gap:10} },
+        USERS.map(u =>
+          h("button", { key:u.id, onClick:()=>dispatch({type:"SET_USER",uid:u.id}),
+            style:{display:"flex",alignItems:"center",gap:14,padding:12,borderRadius:14,border:"2px solid #f1f5f9",background:"#fff",cursor:"pointer",textAlign:"left",transition:"all 0.2s"},
+            onMouseOver:e=>e.currentTarget.style.borderColor="#f97316", onMouseOut:e=>e.currentTarget.style.borderColor="#f1f5f9" },
+            h(Av, { user:u }),
+            h("div", { style:{flex:1,overflow:"hidden"} },
+              h("p", { style:{fontWeight:600,color:"#1e293b"} }, u.name),
+              h("p", { style:{fontSize:13,color:"#94a3b8",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"} }, u.bio)
+            ),
+            h("span", { style:{color:"#cbd5e1",fontSize:20} }, "›")
+          )
+        )
+      )
+    )
+  );
+
+  // ── DINNER DETAIL ──
+  if(detailId) {
+    const d = s.dinners.find(x=>x.id===detailId);
+    if(!d) { setDetailId(null); return null; }
+    const host = USERS.find(u=>u.id===d.hostId);
+    const joined = d.attendees.includes(s.uid);
+    const isHost = d.hostId===s.uid;
+    const left = d.spots - d.attendees.length;
+    const ppl = d.attendees.map(id=>USERS.find(u=>u.id===id)).filter(Boolean);
+
+    return h("div", { className:"animate-fade", style:{minHeight:"100vh",background:"#f8fafc"} },
+      h("div", { className:"gradient-btn", style:{padding:24,paddingBottom:80,color:"#fff"} },
+        h("button", { onClick:()=>setDetailId(null), style:{display:"flex",alignItems:"center",gap:4,color:"rgba(255,255,255,0.8)",background:"none",border:"none",cursor:"pointer",marginBottom:16,fontSize:15} },
+          h(ArrowLeftIcon, { size:16 }), " Zurück"
+        ),
+        h("div", { style:{fontSize:36,marginBottom:8} }, d.flag),
+        h("h1", { style:{fontSize:28,fontWeight:800} }, d.title),
+        h("p", { style:{color:"rgba(255,255,255,0.8)",marginTop:4} }, "von ", host?.name)
+      ),
+
+      h("div", { style:{margin:"0 16px",marginTop:-48,background:"#fff",borderRadius:20,padding:24,boxShadow:"0 4px 15px rgba(0,0,0,0.1)",marginBottom:16} },
+        h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:24} },
+          [
+            [h(ClockIcon, { size:20, color:"#f97316" }),"Wann",d.date],
+            [h(MapPinIcon, { size:20, color:"#f97316" }),"Wo",d.location],
+            [h(UsersIcon, { size:20, color:"#f97316" }),"Plätze",`${left} von ${d.spots} frei`]
+          ].map(([icon,label,val],i) =>
+            h("div", { key:i, style:{textAlign:"center"} },
+              h("div", { style:{display:"flex",justifyContent:"center",marginBottom:4} }, icon),
+              h("p", { style:{fontSize:13,color:"#94a3b8"} }, label),
+              h("p", { style:{fontWeight:600,fontSize:13} }, val)
+            )
+          )
+        ),
+
+        h("h3", { style:{fontWeight:600,marginBottom:8} }, "Über dieses Dinner"),
+        h("p", { style:{color:"#64748b",marginBottom:16} }, d.desc),
+
+        h("div", { style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20} },
+          d.tags.map(t => h("span", { key:t, style:{padding:"4px 12px",background:"#fff7ed",color:"#ea580c",borderRadius:20,fontSize:13} }, t))
+        ),
+
+        h("h3", { style:{fontWeight:600,marginBottom:12} }, `Wer kommt (${d.attendees.length}/${d.spots})`),
+        h("div", { style:{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20} },
+          ppl.map(u =>
+            h("div", { key:u.id, style:{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:20,padding:"4px 12px 4px 4px"} },
+              h(Av, { user:u, size:28 }), h("span", { style:{fontSize:13,fontWeight:500} }, u.name),
+              u.id===d.hostId && h("span", { style:{fontSize:11,background:"#fff7ed",color:"#ea580c",padding:"2px 6px",borderRadius:10} }, "Host")
+            )
+          ),
+          left > 0 && Array.from({length:left}).map((_,i) =>
+            h("div", { key:i, style:{width:28,height:28,borderRadius:"50%",border:"2px dashed #d1d5db",display:"flex",alignItems:"center",justifyContent:"center"} },
+              h(PlusIcon, { size:12, color:"#d1d5db" })
+            )
+          )
+        ),
+
+        h("div", { style:{background:"#f8fafc",borderRadius:14,padding:16,display:"flex",alignItems:"center",gap:16} },
+          h(Av, { user:host, size:56 }),
+          h("div", null,
+            h("p", { style:{fontWeight:600} }, host?.name),
+            h("p", { style:{fontSize:13,color:"#94a3b8"} }, host?.bio),
+            h("div", { style:{display:"flex",alignItems:"center",gap:4,marginTop:4} }, h(StarIcon, { size:14 }), h("span", { style:{fontSize:13,fontWeight:500} }, host?.rating))
+          )
+        )
+      ),
+
+      h("div", { style:{margin:"0 16px",paddingBottom:24,display:"flex",flexDirection:"column",gap:10} },
+        !joined && left>0 && h("button", { onClick:()=>{dispatch({type:"JOIN",id:d.id});flash("Du bist dabei!")}, className:"gradient-btn",
+          style:{width:"100%",padding:16,borderRadius:16,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
+          h(UtensilsIcon, { size:20, color:"#fff" }), "Ich bin dabei!"
+        ),
+        joined && !isHost && h("button", { onClick:()=>{dispatch({type:"LEAVE",id:d.id});flash("Abgemeldet.")},
+          style:{width:"100%",padding:16,borderRadius:16,background:"#22c55e",color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
+          h(CheckIcon, { size:20, color:"#fff" }), "Du bist dabei! (Absagen?)"
+        ),
+        isHost && h("button", { onClick:()=>{dispatch({type:"DELETE",id:d.id});setDetailId(null);flash("Dinner abgesagt.")},
+          style:{width:"100%",padding:14,borderRadius:16,background:"#fff",color:"#ef4444",fontWeight:500,border:"2px solid #fecaca",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
+          h(TrashIcon, { size:16, color:"#ef4444" }), "Dinner absagen"
+        ),
+        left<=0 && !joined && h("p", { style:{textAlign:"center",color:"#94a3b8",padding:16} }, "Leider schon voll belegt")
+      )
+    );
+  }
+
+  // ── CREATE MODAL ──
+  const CreateModal = () => {
+    const [t,setT]=useState(""); const [desc,setDesc]=useState(""); const [dt,setDt]=useState(""); const [sp,setSp]=useState(4); const [loc,setLoc]=useState(""); const [cu,setCu]=useState("Italienisch");
+    return h("div", { onClick:()=>setShowCreate(false), style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:50} },
+      h("div", { className:"animate-slide-up", onClick:e=>e.stopPropagation(), style:{background:"#fff",width:"100%",maxWidth:500,borderRadius:"24px 24px 0 0",padding:24,maxHeight:"85vh",overflowY:"auto"} },
+        h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24} },
+          h("h2", { style:{fontSize:22,fontWeight:800} }, "Dinner erstellen"),
+          h("button", { onClick:()=>setShowCreate(false), style:{background:"none",border:"none",cursor:"pointer",padding:8} }, h(XIcon, { size:20 }))
+        ),
+        h("div", { style:{display:"flex",flexDirection:"column",gap:16} },
+          h("div", null,
+            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Was gibt's zu essen? *"),
+            h("input", { value:t, onChange:e=>setT(e.target.value), placeholder:"z.B. Pasta-Abend", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
+          ),
+          h("div", null,
+            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Beschreibung"),
+            h("textarea", { value:desc, onChange:e=>setDesc(e.target.value), placeholder:"Erzähl was über den Abend...", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none",height:80,resize:"none"} })
+          ),
+          h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12} },
+            h("div", null,
+              h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Wann? *"),
+              h("input", { value:dt, onChange:e=>setDt(e.target.value), placeholder:"Heute, 19:00", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
+            ),
+            h("div", null,
+              h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Plätze"),
+              h("input", { type:"number", value:sp, onChange:e=>setSp(e.target.value), min:2, max:10, style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
+            )
+          ),
+          h("div", null,
+            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Wo? *"),
+            h("input", { value:loc, onChange:e=>setLoc(e.target.value), placeholder:"z.B. Aachen-Mitte", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
+          ),
+          h("div", null,
+            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Küche"),
+            h("div", { style:{display:"flex",flexWrap:"wrap",gap:8} },
+              CUISINES.filter(c=>c!=="Alle").map(c =>
+                h("button", { key:c, onClick:()=>setCu(c), style:{padding:"6px 14px",borderRadius:20,fontSize:13,border:cu===c?"none":"1px solid #e2e8f0",background:cu===c?"#f97316":"#fff",color:cu===c?"#fff":"#374151",cursor:"pointer"} }, FLAGS[c], " ", c)
+              )
+            )
+          ),
+          h("button", { onClick:()=>{if(!t||!dt||!loc)return;dispatch({type:"CREATE",dinner:{title:t,desc,date:dt,spots:Number(sp),location:loc,cuisine:cu,flag:FLAGS[cu]||"🍽️",tags:["Neu"]}});setShowCreate(false);flash("Dinner erstellt!")}, className:"gradient-btn",
+            style:{width:"100%",padding:16,borderRadius:16,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",marginTop:8,opacity:(!t||!dt||!loc)?0.5:1} },
+            "🍽️ Dinner veröffentlichen"
+          )
+        )
+      )
+    );
+  };
+
+  // ── PROFILE TAB ──
+  const ProfileTab = () => h("div", { className:"animate-fade", style:{padding:16} },
+    h("div", { className:"card-shadow", style:{background:"#fff",borderRadius:20,padding:24,textAlign:"center",marginBottom:16} },
+      h(Av, { user:user, size:72 }),
+      h("h3", { style:{fontSize:20,fontWeight:800,marginTop:12} }, user.name),
+      h("p", { style:{color:"#94a3b8",marginTop:4} }, user.bio),
+      h("div", { style:{display:"flex",alignItems:"center",justifyContent:"center",gap:4,marginTop:8} }, h(StarIcon, { size:16 }), h("span", { style:{fontWeight:500} }, user.rating))
+    ),
+    h("div", { className:"card-shadow", style:{background:"#fff",borderRadius:20,padding:16,marginBottom:16} },
+      h("h4", { style:{fontWeight:600,marginBottom:12} }, `Deine Dinner (${myDinners.length})`),
+      myDinners.length===0 && h("p", { style:{color:"#cbd5e1",fontSize:13} }, "Noch keine Dinner."),
+      myDinners.map(d =>
+        h("button", { key:d.id, onClick:()=>{setDetailId(d.id);setTab("discover")}, style:{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 8px",borderBottom:"1px solid #f1f5f9",background:"none",border:"none",cursor:"pointer",textAlign:"left"} },
+          h("div", { style:{display:"flex",alignItems:"center",gap:12} },
+            h("span", { style:{fontSize:20} }, d.flag),
+            h("div", null, h("p", { style:{fontWeight:500,fontSize:14} }, d.title), h("p", { style:{fontSize:12,color:"#94a3b8"} }, d.date, " · ", d.location))
+          ),
+          d.hostId===s.uid && h("span", { style:{fontSize:11,background:"#fff7ed",color:"#ea580c",padding:"2px 8px",borderRadius:10} }, "Host")
+        )
+      )
+    ),
+    h("button", { onClick:()=>{setLoggedIn(false);dispatch({type:"SET_USER",uid:null})},
+      style:{width:"100%",padding:14,borderRadius:12,border:"1px solid #e2e8f0",background:"#fff",color:"#94a3b8",display:"flex",alignItems:"center",justifyContent:"center",gap:8,cursor:"pointer",fontSize:15} },
+      h(LogOutIcon, { size:16, color:"#94a3b8" }), "Abmelden"
+    )
+  );
+
+  // ── MAIN ──
+  return h("div", { style:{minHeight:"100vh",background:"#f8fafc",paddingBottom:80} },
+    // Toast
+    toast && h("div", { style:{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:60,background:"#22c55e",color:"#fff",padding:"10px 24px",borderRadius:16,boxShadow:"0 4px 15px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",gap:8,fontSize:15,fontWeight:500} },
+      h(CheckIcon, { size:18, color:"#fff" }), " ", toast
+    ),
+
+    // Header
+    h("div", { className:"gradient-btn", style:{padding:"24px 24px 32px",borderRadius:"0 0 24px 24px"} },
+      h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,color:"#fff"} },
+        h("div", null,
+          h("p", { style:{color:"rgba(255,255,255,0.8)",fontSize:14} }, "Guten Abend"),
+          h("h1", { style:{fontSize:22,fontWeight:800} }, user?.name)
+        ),
+        h("div", { style:{background:"rgba(255,255,255,0.2)",borderRadius:20,padding:"4px 12px",display:"flex",alignItems:"center",gap:4,color:"#fff",fontSize:14} },
+          h(MapPinIcon, { size:14, color:"#fff" }), " ", CITY
+        )
+      ),
+      h("div", { style:{position:"relative"} },
+        h("div", { style:{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"} }, h(SearchIcon, { size:18, color:"#94a3b8" })),
+        h("input", { value:search, onChange:e=>setSearch(e.target.value), placeholder:"Suche nach Dinner oder Gastgeber...",
+          style:{width:"100%",padding:"12px 16px 12px 44px",borderRadius:16,border:"none",fontSize:15,outline:"none",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"} })
+      )
+    ),
+
+    // Tab Content
+    tab==="discover" && h("div", { className:"animate-fade" },
+      // Cuisine Filter
+      h("div", { className:"no-scrollbar", style:{display:"flex",gap:8,overflowX:"auto",padding:"16px 16px"} },
+        CUISINES.map(c =>
+          h("button", { key:c, onClick:()=>setFilter(c),
+            style:{padding:"8px 16px",borderRadius:20,fontSize:13,fontWeight:500,whiteSpace:"nowrap",border:filter===c?"none":"1px solid #e2e8f0",background:filter===c?"#f97316":"#fff",color:filter===c?"#fff":"#64748b",cursor:"pointer",transition:"all 0.2s"} },
+            FLAGS[c], " ", c
+          )
+        )
+      ),
+
+      // Stats
+      h("div", { style:{padding:"0 16px",marginBottom:16} },
+        h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12} },
+          [[s.dinners.length,"#f97316","Offene Dinner"],[USERS.length,"#e11d48","Aktive Nutzer"],[myDinners.length,"#9333ea","Deine Dinner"]].map(([n,c,l],i) =>
+            h("div", { key:i, className:"card-shadow", style:{background:"#fff",borderRadius:16,padding:12,textAlign:"center"} },
+              h("p", { style:{fontSize:22,fontWeight:800,color:c} }, n),
+              h("p", { style:{fontSize:11,color:"#94a3b8"} }, l)
+            )
+          )
+        )
+      ),
+
+      h("div", { style:{padding:"0 16px",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12} },
+        h("h2", { style:{fontSize:17,fontWeight:800,color:"#1e293b"} }, "Dinner in deiner Nähe"),
+        h("span", { style:{fontSize:13,color:"#f97316",fontWeight:500} }, filtered.length, " verfügbar")
+      ),
+
+      h("div", { style:{padding:"0 16px",display:"flex",flexDirection:"column",gap:16} },
+        filtered.map(d => {
+          const host=USERS.find(u=>u.id===d.hostId); const joined=d.attendees.includes(s.uid); const left=d.spots-d.attendees.length;
+          return h("div", { key:d.id, onClick:()=>setDetailId(d.id), className:"card-shadow", style:{background:"#fff",borderRadius:20,overflow:"hidden",cursor:"pointer",transition:"all 0.2s"} },
+            h("div", { style:{background:"linear-gradient(to right, #fff7ed, #fff1f2)",padding:16,display:"flex",justifyContent:"space-between",alignItems:"flex-start"} },
+              h("div", { style:{display:"flex",alignItems:"center",gap:12} },
+                h(Av, { user:host }),
+                h("div", null,
+                  h("p", { style:{fontWeight:600,color:"#1e293b"} }, host?.name),
+                  h("div", { style:{display:"flex",alignItems:"center",gap:4} }, h(StarIcon, { size:12 }), h("span", { style:{fontSize:12,color:"#94a3b8"} }, host?.rating))
+                )
+              ),
+              h("span", { style:{fontSize:24} }, d.flag)
+            ),
+            h("div", { style:{padding:16} },
+              h("h3", { style:{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:8} }, d.title),
+              h("p", { style:{fontSize:13,color:"#94a3b8",marginBottom:12} }, d.desc?.substring(0,80), "..."),
+              h("div", { style:{display:"flex",alignItems:"center",gap:16,fontSize:13,color:"#94a3b8",marginBottom:12} },
+                h("span", { style:{display:"flex",alignItems:"center",gap:4} }, h(ClockIcon, { size:14, color:"#fb923c" }), " ", d.date),
+                h("span", { style:{display:"flex",alignItems:"center",gap:4} }, h(MapPinIcon, { size:14, color:"#fb923c" }), " ", d.location)
+              ),
+              h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center"} },
+                h("div", { style:{display:"flex",gap:6} }, d.tags.map(t => h("span", { key:t, style:{padding:"2px 8px",background:"#f1f5f9",color:"#64748b",borderRadius:12,fontSize:11} }, t))),
+                h("div", { style:{display:"flex",alignItems:"center",gap:8} },
+                  h("span", { style:{display:"flex",alignItems:"center",gap:4,fontSize:13} }, h(UsersIcon, { size:14, color:"#94a3b8" }), h("span", { style:{color:left<=1?"#ef4444":"#94a3b8",fontWeight:left<=1?600:400} }, left, " frei")),
+                  joined && h("span", { style:{background:"#dcfce7",color:"#16a34a",padding:"2px 8px",borderRadius:12,fontSize:11,fontWeight:500} }, "Dabei!")
+                )
+              )
+            )
+          );
+        }),
+        filtered.length===0 && h("div", { style:{textAlign:"center",padding:48} }, h("div", { style:{fontSize:48,marginBottom:16} }, "🍽️"), h("p", { style:{color:"#94a3b8",fontSize:17} }, "Keine Dinner gefunden"))
+      )
+    ),
+    tab==="favorites" && h("div", { className:"animate-fade", style:{textAlign:"center",padding:64} }, h("div", { style:{fontSize:48,marginBottom:16} }, "❤️"), h("h3", { style:{fontSize:17,fontWeight:700} }, "Favoriten"), h("p", { style:{color:"#94a3b8",marginTop:4} }, "Kommt bald!")),
+    tab==="chats" && h("div", { className:"animate-fade", style:{textAlign:"center",padding:64} }, h("div", { style:{fontSize:48,marginBottom:16} }, "💬"), h("h3", { style:{fontSize:17,fontWeight:700} }, "Chats"), h("p", { style:{color:"#94a3b8",marginTop:4} }, "Kommt bald!")),
+    tab==="profile" && h(ProfileTab),
+
+    // FAB
+    tab==="discover" && h("button", { onClick:()=>setShowCreate(true), className:"gradient-btn",
+      style:{position:"fixed",bottom:88,right:20,width:56,height:56,borderRadius:"50%",border:"none",color:"#fff",cursor:"pointer",boxShadow:"0 4px 15px rgba(249,115,22,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:40} },
+      h(PlusIcon, { size:28, color:"#fff" })
+    ),
+
+    // Bottom Nav
+    h("div", { style:{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:"1px solid #f1f5f9",padding:"8px 24px",display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:30} },
+      [
+        ["discover",h(UtensilsIcon, { size:20 }),"Entdecken"],
+        ["favorites",h(HeartIcon, { size:20 }),"Favoriten"],
+        ["chats",h(ChatIcon, { size:20 }),"Chats"],
+        ["profile",null,"Profil"],
+      ].map(([id,icon,label]) =>
+        h("button", { key:id, onClick:()=>setTab(id), style:{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",color:tab===id?"#f97316":"#94a3b8",transition:"color 0.2s"} },
+          icon || h(Av, { user:user, size:22 }),
+          h("span", { style:{fontSize:11,fontWeight:tab===id?600:400} }, label)
+        )
+      )
+    ),
+
+    showCreate && h(CreateModal)
+  );
+}
+
+ReactDOM.render(h(App), document.getElementById("root"));
+</script>
+</body>
+</html>
