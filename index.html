@@ -1,464 +1,396 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NeverEatAlone</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; overflow-x: hidden; }
-  input, textarea, button { font-family: inherit; }
-  .gradient-bg { background: linear-gradient(135deg, #f97316, #e11d48, #9333ea); }
-  .gradient-btn { background: linear-gradient(to right, #f97316, #e11d48); }
-  .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .card-shadow-lg { box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-  .animate-fade { animation: fadeIn 0.3s ease-out; }
-  .animate-slide-up { animation: slideUp 0.3s ease-out; }
-  .animate-shake { animation: shake 0.4s ease-out; }
-  .animate-pulse { animation: pulse 2s ease-in-out infinite; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NieAlleinEssen – Nie wieder alleine essen</title>
+  <meta name="description" content="Finde Menschen in deiner Nähe, die gerne gemeinsam kochen und essen. Oder lade selbst zum Abendessen ein." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translate(-50%, 12px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #E07A3A !important;
+      box-shadow: 0 0 0 3px #FDEBD3 !important;
+      outline: none;
+    }
+  </style>
 </head>
 <body>
-<div id="root"></div>
-<script>
-const h = React.createElement;
-const { useState, useEffect, useReducer } = React;
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
 
-// ══════════════════════════════════════════════
-const APP_PASSWORD = "neveralone2026";
-const CITY = "Aachen";
+    const SAMPLE_DINNERS = [
+      {
+        id: 1,
+        title: "Pasta-Abend in Kreuzberg",
+        host: "Maria",
+        date: "2026-04-10",
+        time: "19:00",
+        city: "Berlin",
+        district: "Kreuzberg",
+        maxGuests: 4,
+        guests: ["Tom", "Lena"],
+        description: "Ich koche frische Tagliatelle mit Pesto und Salat. Bringt gerne Wein mit!",
+        cuisine: "Italienisch",
+      },
+      {
+        id: 2,
+        title: "Gemeinsam Curry kochen",
+        host: "Ahmed",
+        date: "2026-04-12",
+        time: "18:30",
+        city: "München",
+        district: "Schwabing",
+        maxGuests: 3,
+        guests: ["Sophie"],
+        description: "Wir kochen zusammen ein Thai-Curry. Vegetarisch & vegan möglich. Keine Vorkenntnisse nötig!",
+        cuisine: "Thailändisch",
+      },
+      {
+        id: 3,
+        title: "Sonntagsbraten für alle",
+        host: "Oma Gertrud",
+        date: "2026-04-13",
+        time: "12:00",
+        city: "Hamburg",
+        district: "Eimsbüttel",
+        maxGuests: 6,
+        guests: ["Felix", "Jana", "Markus"],
+        description: "Klassischer Sonntagsbraten mit Knödeln und Rotkohl. Wie bei Oma – weil jeder ein Zuhause verdient.",
+        cuisine: "Deutsch",
+      },
+      {
+        id: 4,
+        title: "Sushi-Abend",
+        host: "Yuki",
+        date: "2026-04-14",
+        time: "19:30",
+        city: "Berlin",
+        district: "Mitte",
+        maxGuests: 5,
+        guests: [],
+        description: "Ich zeige euch, wie man Sushi selbst rollt. Alle Zutaten sind da – kommt einfach vorbei!",
+        cuisine: "Japanisch",
+      },
+    ];
 
-const USERS = [
-  { id:1, name:"Tushar", avatar:"T", bio:"Liebt indisches Essen & gute Gespräche", rating:4.8, color:"#f97316" },
-  { id:2, name:"Lena", avatar:"L", bio:"Veganerin, kocht leidenschaftlich gern", rating:4.9, color:"#e11d48" },
-  { id:3, name:"Max", avatar:"M", bio:"Hobbykoch, probiert ständig Neues", rating:4.7, color:"#3b82f6" },
-  { id:4, name:"Sophie", avatar:"S", bio:"Neue in der Stadt, liebt Sushi", rating:4.6, color:"#9333ea" },
-  { id:5, name:"Jonas", avatar:"J", bio:"Student, immer hungrig, immer gesprächig", rating:4.5, color:"#22c55e" },
-  { id:6, name:"Mia", avatar:"M", bio:"Foodie & Wissenschaftlerin", rating:4.9, color:"#14b8a6" },
-];
+    const CITIES = ["Alle Städte", "Berlin", "München", "Hamburg", "Köln", "Frankfurt"];
 
-const INIT_DINNERS = [
-  { id:1, hostId:2, title:"Veganes Thai-Curry", date:"Heute, 19:00", location:"Aachen-Mitte", spots:3, cuisine:"Thai", flag:"🇹🇭", desc:"Selbstgemachtes grünes Curry mit Jasminreis und frischem Gemüse. Alles vegan!", tags:["Vegan","Selbstgekocht"], attendees:[2] },
-  { id:2, hostId:3, title:"Pizza-Abend mit Sauerteig", date:"Morgen, 18:30", location:"Pontstraße", spots:4, cuisine:"Italienisch", flag:"🇮🇹", desc:"Ich backe Sauerteig-Pizza im Ofen – ihr bringt gute Laune mit!", tags:["Selbstgekocht","Gesellig"], attendees:[3,5] },
-  { id:3, hostId:4, title:"Sushi bestellen & Netflix", date:"Fr, 20:00", location:"Eupener Str.", spots:3, cuisine:"Japanisch", flag:"🇯🇵", desc:"Gemeinsam Sushi bestellen, chillen und eine Serie schauen. Spontan & entspannt.", tags:["Bestellen","Gemütlich"], attendees:[4] },
-  { id:4, hostId:6, title:"Indischer Kochabend", date:"Sa, 18:00", location:"Rothe Erde", spots:5, cuisine:"Indisch", flag:"🇮🇳", desc:"Wir kochen zusammen Butter Chicken und Naan. Anfänger willkommen!", tags:["Zusammen kochen","Anfängerfreundlich"], attendees:[6] },
-];
-
-const CUISINES = ["Alle","Italienisch","Japanisch","Indisch","Thai","Mexikanisch","Deutsch"];
-const FLAGS = { Alle:"🍽️", Italienisch:"🇮🇹", Japanisch:"🇯🇵", Indisch:"🇮🇳", Thai:"🇹🇭", Mexikanisch:"🇲🇽", Deutsch:"🇩🇪" };
-
-// SVG Icons (inline to avoid dependencies)
-const Icon = ({ d, size=20, color="currentColor", fill="none", strokeWidth=2 }) =>
-  h("svg", { width:size, height:size, viewBox:"0 0 24 24", fill:fill, stroke:color, strokeWidth:strokeWidth, strokeLinecap:"round", strokeLinejoin:"round" }, d);
-
-const MapPinIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" }), h("circle", { cx:"12", cy:"10", r:"3" })) });
-const ClockIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("circle", { cx:"12", cy:"12", r:"10" }), h("polyline", { points:"12 6 12 12 16 14" })) });
-const UsersIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }), h("circle", { cx:"9", cy:"7", r:"4" }), h("path", { d:"M22 21v-2a4 4 0 0 0-3-3.87" }), h("path", { d:"M16 3.13a4 4 0 0 1 0 7.75" })) });
-const SearchIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("circle", { cx:"11", cy:"11", r:"8" }), h("line", { x1:"21", y1:"21", x2:"16.65", y2:"16.65" })) });
-const StarIcon = (p) => h(Icon, { ...p, d:h("polygon", { points:"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" }), fill:"#eab308", color:"#eab308" });
-const PlusIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"12", y1:"5", x2:"12", y2:"19" }), h("line", { x1:"5", y1:"12", x2:"19", y2:"12" })) });
-const XIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"18", y1:"6", x2:"6", y2:"18" }), h("line", { x1:"6", y1:"6", x2:"18", y2:"18" })) });
-const CheckIcon = (p) => h(Icon, { ...p, d:h("polyline", { points:"20 6 9 17 4 12" }) });
-const ArrowLeftIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("line", { x1:"19", y1:"12", x2:"5", y2:"12" }), h("polyline", { points:"12 19 5 12 12 5" })) });
-const LockIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("rect", { x:"3", y:"11", width:"18", height:"11", rx:"2", ry:"2" }), h("path", { d:"M7 11V7a5 5 0 0 1 10 0v4" })) });
-const LogOutIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }), h("polyline", { points:"16 17 21 12 16 7" }), h("line", { x1:"21", y1:"12", x2:"9", y2:"12" })) });
-const TrashIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("polyline", { points:"3 6 5 6 21 6" }), h("path", { d:"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" })) });
-const UtensilsIcon = (p) => h(Icon, { ...p, d:h(React.Fragment, null, h("path", { d:"M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }), h("path", { d:"M7 2v20" }), h("path", { d:"M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" })) });
-const HeartIcon = (p) => h(Icon, { ...p, d:h("path", { d:"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" }) });
-const ChatIcon = (p) => h(Icon, { ...p, d:h("path", { d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }) });
-
-// Avatar
-function Av({ user, size=44 }) {
-  return h("div", { style:{ width:size, height:size, borderRadius:"50%", background:user.color, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:size*0.4, flexShrink:0 } }, user.avatar);
-}
-
-// Reducer
-function reducer(s, a) {
-  switch(a.type) {
-    case "JOIN": return { ...s, dinners: s.dinners.map(d => d.id===a.id && !d.attendees.includes(s.uid) ? {...d, attendees:[...d.attendees, s.uid]} : d) };
-    case "LEAVE": return { ...s, dinners: s.dinners.map(d => d.id===a.id ? {...d, attendees:d.attendees.filter(x=>x!==s.uid)} : d) };
-    case "CREATE": return { ...s, dinners: [{ ...a.dinner, id: Date.now(), hostId:s.uid, attendees:[s.uid] }, ...s.dinners] };
-    case "DELETE": return { ...s, dinners: s.dinners.filter(d=>d.id!==a.id) };
-    case "SET_USER": return { ...s, uid: a.uid };
-    default: return s;
-  }
-}
-
-// ══════════════════════════════════════════════
-// APP
-// ══════════════════════════════════════════════
-function App() {
-  const [view, setView] = useState("splash");
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [detailId, setDetailId] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [filter, setFilter] = useState("Alle");
-  const [search, setSearch] = useState("");
-  const [toast, setToast] = useState(null);
-  const [tab, setTab] = useState("discover");
-  const [pw, setPw] = useState("");
-  const [pwErr, setPwErr] = useState(false);
-  const [pwShake, setPwShake] = useState(false);
-
-  const [s, dispatch] = useReducer(reducer, { dinners: INIT_DINNERS, uid: null });
-
-  useEffect(() => { if(view==="splash") { const t=setTimeout(()=>setView("login"),2000); return ()=>clearTimeout(t); } }, [view]);
-
-  const flash = (msg) => { setToast(msg); setTimeout(()=>setToast(null), 3000); };
-  const user = USERS.find(u=>u.id===s.uid);
-  const myDinners = s.dinners.filter(d=>d.attendees.includes(s.uid));
-
-  const filtered = s.dinners.filter(d => {
-    if(filter!=="Alle" && d.cuisine!==filter) return false;
-    if(search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-
-  // ── SPLASH ──
-  if(view==="splash") return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"} },
-    h("div", { style:{textAlign:"center"} },
-      h("div", { className:"animate-pulse", style:{fontSize:80,marginBottom:20} }, "🍽️"),
-      h("h1", { style:{fontSize:42,fontWeight:800,color:"#fff",fontFamily:"Georgia,serif",marginBottom:8} }, "NeverEatAlone"),
-      h("p", { style:{fontSize:18,color:"rgba(255,255,255,0.8)"} }, "Gemeinsam essen. Freunde finden.")
-    )
-  );
-
-  // ── LOGIN ──
-  if(!loggedIn) return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24} },
-    h("div", { className:`animate-fade ${pwShake?"animate-shake":""}`, style:{background:"#fff",borderRadius:24,padding:32,width:"100%",maxWidth:380,boxShadow:"0 25px 50px rgba(0,0,0,0.2)"} },
-      h("div", { style:{textAlign:"center",marginBottom:32} },
-        h("div", { style:{fontSize:56,marginBottom:12} }, "🍽️"),
-        h("h1", { style:{fontSize:28,fontWeight:800,color:"#1e293b",fontFamily:"Georgia,serif"} }, "NeverEatAlone"),
-        h("p", { style:{color:"#94a3b8",marginTop:8} }, "Gemeinsam essen. Freunde finden.")
-      ),
-      h("form", { onSubmit: e => { e.preventDefault(); if(pw===APP_PASSWORD){setLoggedIn(true);setView("selectUser")} else {setPwErr(true);setPwShake(true);setTimeout(()=>setPwShake(false),500)} } },
-        h("label", { style:{display:"block",fontSize:14,fontWeight:500,color:"#64748b",marginBottom:8} }, "Passwort eingeben"),
-        h("div", { style:{position:"relative",marginBottom:8} },
-          h("div", { style:{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"} }, h(LockIcon, { size:18, color:"#94a3b8" })),
-          h("input", { type:"password", value:pw, onChange:e=>{setPw(e.target.value);setPwErr(false)}, placeholder:"Geheimes Freundes-Passwort", autoFocus:true,
-            style:{width:"100%",padding:"14px 16px 14px 44px",borderRadius:12,border:`2px solid ${pwErr?"#f87171":"#e2e8f0"}`,fontSize:16,outline:"none",background:pwErr?"#fef2f2":"#fff"} })
-        ),
-        pwErr && h("p", { style:{color:"#ef4444",fontSize:13,marginBottom:12} }, "Falsches Passwort. Frag deine Freunde!"),
-        h("button", { type:"submit", className:"gradient-btn", style:{width:"100%",padding:14,borderRadius:12,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",marginTop:8} },
-          "Eintreten"
-        )
-      ),
-      h("p", { style:{textAlign:"center",color:"#cbd5e1",fontSize:12,marginTop:20} }, "Nur mit Einladung. Frag einen Freund nach dem Passwort.")
-    )
-  );
-
-  // ── USER SELECT ──
-  if(!s.uid) return h("div", { className:"gradient-bg", style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24} },
-    h("div", { className:"animate-fade", style:{background:"#fff",borderRadius:24,padding:32,width:"100%",maxWidth:400,boxShadow:"0 25px 50px rgba(0,0,0,0.2)"} },
-      h("div", { style:{textAlign:"center",marginBottom:24} },
-        h("h2", { style:{fontSize:24,fontWeight:800,color:"#1e293b"} }, "Wer bist du?"),
-        h("p", { style:{color:"#94a3b8",marginTop:4} }, "Wähle deinen Namen")
-      ),
-      h("div", { style:{display:"flex",flexDirection:"column",gap:10} },
-        USERS.map(u =>
-          h("button", { key:u.id, onClick:()=>dispatch({type:"SET_USER",uid:u.id}),
-            style:{display:"flex",alignItems:"center",gap:14,padding:12,borderRadius:14,border:"2px solid #f1f5f9",background:"#fff",cursor:"pointer",textAlign:"left",transition:"all 0.2s"},
-            onMouseOver:e=>e.currentTarget.style.borderColor="#f97316", onMouseOut:e=>e.currentTarget.style.borderColor="#f1f5f9" },
-            h(Av, { user:u }),
-            h("div", { style:{flex:1,overflow:"hidden"} },
-              h("p", { style:{fontWeight:600,color:"#1e293b"} }, u.name),
-              h("p", { style:{fontSize:13,color:"#94a3b8",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"} }, u.bio)
-            ),
-            h("span", { style:{color:"#cbd5e1",fontSize:20} }, "›")
-          )
-        )
-      )
-    )
-  );
-
-  // ── DINNER DETAIL ──
-  if(detailId) {
-    const d = s.dinners.find(x=>x.id===detailId);
-    if(!d) { setDetailId(null); return null; }
-    const host = USERS.find(u=>u.id===d.hostId);
-    const joined = d.attendees.includes(s.uid);
-    const isHost = d.hostId===s.uid;
-    const left = d.spots - d.attendees.length;
-    const ppl = d.attendees.map(id=>USERS.find(u=>u.id===id)).filter(Boolean);
-
-    return h("div", { className:"animate-fade", style:{minHeight:"100vh",background:"#f8fafc"} },
-      h("div", { className:"gradient-btn", style:{padding:24,paddingBottom:80,color:"#fff"} },
-        h("button", { onClick:()=>setDetailId(null), style:{display:"flex",alignItems:"center",gap:4,color:"rgba(255,255,255,0.8)",background:"none",border:"none",cursor:"pointer",marginBottom:16,fontSize:15} },
-          h(ArrowLeftIcon, { size:16 }), " Zurück"
-        ),
-        h("div", { style:{fontSize:36,marginBottom:8} }, d.flag),
-        h("h1", { style:{fontSize:28,fontWeight:800} }, d.title),
-        h("p", { style:{color:"rgba(255,255,255,0.8)",marginTop:4} }, "von ", host?.name)
-      ),
-
-      h("div", { style:{margin:"0 16px",marginTop:-48,background:"#fff",borderRadius:20,padding:24,boxShadow:"0 4px 15px rgba(0,0,0,0.1)",marginBottom:16} },
-        h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:24} },
-          [
-            [h(ClockIcon, { size:20, color:"#f97316" }),"Wann",d.date],
-            [h(MapPinIcon, { size:20, color:"#f97316" }),"Wo",d.location],
-            [h(UsersIcon, { size:20, color:"#f97316" }),"Plätze",`${left} von ${d.spots} frei`]
-          ].map(([icon,label,val],i) =>
-            h("div", { key:i, style:{textAlign:"center"} },
-              h("div", { style:{display:"flex",justifyContent:"center",marginBottom:4} }, icon),
-              h("p", { style:{fontSize:13,color:"#94a3b8"} }, label),
-              h("p", { style:{fontWeight:600,fontSize:13} }, val)
-            )
-          )
-        ),
-
-        h("h3", { style:{fontWeight:600,marginBottom:8} }, "Über dieses Dinner"),
-        h("p", { style:{color:"#64748b",marginBottom:16} }, d.desc),
-
-        h("div", { style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20} },
-          d.tags.map(t => h("span", { key:t, style:{padding:"4px 12px",background:"#fff7ed",color:"#ea580c",borderRadius:20,fontSize:13} }, t))
-        ),
-
-        h("h3", { style:{fontWeight:600,marginBottom:12} }, `Wer kommt (${d.attendees.length}/${d.spots})`),
-        h("div", { style:{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20} },
-          ppl.map(u =>
-            h("div", { key:u.id, style:{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:20,padding:"4px 12px 4px 4px"} },
-              h(Av, { user:u, size:28 }), h("span", { style:{fontSize:13,fontWeight:500} }, u.name),
-              u.id===d.hostId && h("span", { style:{fontSize:11,background:"#fff7ed",color:"#ea580c",padding:"2px 6px",borderRadius:10} }, "Host")
-            )
-          ),
-          left > 0 && Array.from({length:left}).map((_,i) =>
-            h("div", { key:i, style:{width:28,height:28,borderRadius:"50%",border:"2px dashed #d1d5db",display:"flex",alignItems:"center",justifyContent:"center"} },
-              h(PlusIcon, { size:12, color:"#d1d5db" })
-            )
-          )
-        ),
-
-        h("div", { style:{background:"#f8fafc",borderRadius:14,padding:16,display:"flex",alignItems:"center",gap:16} },
-          h(Av, { user:host, size:56 }),
-          h("div", null,
-            h("p", { style:{fontWeight:600} }, host?.name),
-            h("p", { style:{fontSize:13,color:"#94a3b8"} }, host?.bio),
-            h("div", { style:{display:"flex",alignItems:"center",gap:4,marginTop:4} }, h(StarIcon, { size:14 }), h("span", { style:{fontSize:13,fontWeight:500} }, host?.rating))
-          )
-        )
-      ),
-
-      h("div", { style:{margin:"0 16px",paddingBottom:24,display:"flex",flexDirection:"column",gap:10} },
-        !joined && left>0 && h("button", { onClick:()=>{dispatch({type:"JOIN",id:d.id});flash("Du bist dabei!")}, className:"gradient-btn",
-          style:{width:"100%",padding:16,borderRadius:16,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
-          h(UtensilsIcon, { size:20, color:"#fff" }), "Ich bin dabei!"
-        ),
-        joined && !isHost && h("button", { onClick:()=>{dispatch({type:"LEAVE",id:d.id});flash("Abgemeldet.")},
-          style:{width:"100%",padding:16,borderRadius:16,background:"#22c55e",color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
-          h(CheckIcon, { size:20, color:"#fff" }), "Du bist dabei! (Absagen?)"
-        ),
-        isHost && h("button", { onClick:()=>{dispatch({type:"DELETE",id:d.id});setDetailId(null);flash("Dinner abgesagt.")},
-          style:{width:"100%",padding:14,borderRadius:16,background:"#fff",color:"#ef4444",fontWeight:500,border:"2px solid #fecaca",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8} },
-          h(TrashIcon, { size:16, color:"#ef4444" }), "Dinner absagen"
-        ),
-        left<=0 && !joined && h("p", { style:{textAlign:"center",color:"#94a3b8",padding:16} }, "Leider schon voll belegt")
-      )
+    const IconUsers = () => (
+      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
     );
-  }
-
-  // ── CREATE MODAL ──
-  const CreateModal = () => {
-    const [t,setT]=useState(""); const [desc,setDesc]=useState(""); const [dt,setDt]=useState(""); const [sp,setSp]=useState(4); const [loc,setLoc]=useState(""); const [cu,setCu]=useState("Italienisch");
-    return h("div", { onClick:()=>setShowCreate(false), style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:50} },
-      h("div", { className:"animate-slide-up", onClick:e=>e.stopPropagation(), style:{background:"#fff",width:"100%",maxWidth:500,borderRadius:"24px 24px 0 0",padding:24,maxHeight:"85vh",overflowY:"auto"} },
-        h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24} },
-          h("h2", { style:{fontSize:22,fontWeight:800} }, "Dinner erstellen"),
-          h("button", { onClick:()=>setShowCreate(false), style:{background:"none",border:"none",cursor:"pointer",padding:8} }, h(XIcon, { size:20 }))
-        ),
-        h("div", { style:{display:"flex",flexDirection:"column",gap:16} },
-          h("div", null,
-            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Was gibt's zu essen? *"),
-            h("input", { value:t, onChange:e=>setT(e.target.value), placeholder:"z.B. Pasta-Abend", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
-          ),
-          h("div", null,
-            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Beschreibung"),
-            h("textarea", { value:desc, onChange:e=>setDesc(e.target.value), placeholder:"Erzähl was über den Abend...", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none",height:80,resize:"none"} })
-          ),
-          h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12} },
-            h("div", null,
-              h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Wann? *"),
-              h("input", { value:dt, onChange:e=>setDt(e.target.value), placeholder:"Heute, 19:00", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
-            ),
-            h("div", null,
-              h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Plätze"),
-              h("input", { type:"number", value:sp, onChange:e=>setSp(e.target.value), min:2, max:10, style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
-            )
-          ),
-          h("div", null,
-            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Wo? *"),
-            h("input", { value:loc, onChange:e=>setLoc(e.target.value), placeholder:"z.B. Aachen-Mitte", style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #e2e8f0",fontSize:15,outline:"none"} })
-          ),
-          h("div", null,
-            h("label", { style:{display:"block",fontSize:13,fontWeight:500,color:"#64748b",marginBottom:6} }, "Küche"),
-            h("div", { style:{display:"flex",flexWrap:"wrap",gap:8} },
-              CUISINES.filter(c=>c!=="Alle").map(c =>
-                h("button", { key:c, onClick:()=>setCu(c), style:{padding:"6px 14px",borderRadius:20,fontSize:13,border:cu===c?"none":"1px solid #e2e8f0",background:cu===c?"#f97316":"#fff",color:cu===c?"#fff":"#374151",cursor:"pointer"} }, FLAGS[c], " ", c)
-              )
-            )
-          ),
-          h("button", { onClick:()=>{if(!t||!dt||!loc)return;dispatch({type:"CREATE",dinner:{title:t,desc,date:dt,spots:Number(sp),location:loc,cuisine:cu,flag:FLAGS[cu]||"🍽️",tags:["Neu"]}});setShowCreate(false);flash("Dinner erstellt!")}, className:"gradient-btn",
-            style:{width:"100%",padding:16,borderRadius:16,color:"#fff",fontWeight:700,fontSize:17,border:"none",cursor:"pointer",marginTop:8,opacity:(!t||!dt||!loc)?0.5:1} },
-            "🍽️ Dinner veröffentlichen"
-          )
-        )
-      )
+    const IconClock = () => (
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+      </svg>
     );
-  };
+    const IconMapPin = () => (
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+      </svg>
+    );
+    const IconPlus = () => (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    );
+    const IconHeart = () => (
+      <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    );
+    const IconChef = () => (
+      <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z" /><line x1="6" y1="17" x2="18" y2="17" />
+      </svg>
+    );
 
-  // ── PROFILE TAB ──
-  const ProfileTab = () => h("div", { className:"animate-fade", style:{padding:16} },
-    h("div", { className:"card-shadow", style:{background:"#fff",borderRadius:20,padding:24,textAlign:"center",marginBottom:16} },
-      h(Av, { user:user, size:72 }),
-      h("h3", { style:{fontSize:20,fontWeight:800,marginTop:12} }, user.name),
-      h("p", { style:{color:"#94a3b8",marginTop:4} }, user.bio),
-      h("div", { style:{display:"flex",alignItems:"center",justifyContent:"center",gap:4,marginTop:8} }, h(StarIcon, { size:16 }), h("span", { style:{fontWeight:500} }, user.rating))
-    ),
-    h("div", { className:"card-shadow", style:{background:"#fff",borderRadius:20,padding:16,marginBottom:16} },
-      h("h4", { style:{fontWeight:600,marginBottom:12} }, `Deine Dinner (${myDinners.length})`),
-      myDinners.length===0 && h("p", { style:{color:"#cbd5e1",fontSize:13} }, "Noch keine Dinner."),
-      myDinners.map(d =>
-        h("button", { key:d.id, onClick:()=>{setDetailId(d.id);setTab("discover")}, style:{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 8px",borderBottom:"1px solid #f1f5f9",background:"none",border:"none",cursor:"pointer",textAlign:"left"} },
-          h("div", { style:{display:"flex",alignItems:"center",gap:12} },
-            h("span", { style:{fontSize:20} }, d.flag),
-            h("div", null, h("p", { style:{fontWeight:500,fontSize:14} }, d.title), h("p", { style:{fontSize:12,color:"#94a3b8"} }, d.date, " · ", d.location))
-          ),
-          d.hostId===s.uid && h("span", { style:{fontSize:11,background:"#fff7ed",color:"#ea580c",padding:"2px 8px",borderRadius:10} }, "Host")
-        )
-      )
-    ),
-    h("button", { onClick:()=>{setLoggedIn(false);dispatch({type:"SET_USER",uid:null})},
-      style:{width:"100%",padding:14,borderRadius:12,border:"1px solid #e2e8f0",background:"#fff",color:"#94a3b8",display:"flex",alignItems:"center",justifyContent:"center",gap:8,cursor:"pointer",fontSize:15} },
-      h(LogOutIcon, { size:16, color:"#94a3b8" }), "Abmelden"
-    )
-  );
+    const colors = {
+      warmBg: "#FFF8F0",
+      warmBgAlt: "#FFF1E0",
+      accent: "#E07A3A",
+      accentHover: "#C9612A",
+      accentLight: "#FDEBD3",
+      text: "#3D2C1E",
+      textMuted: "#8B7355",
+      card: "#FFFFFF",
+      cardBorder: "#F0DCC8",
+      success: "#5A9E6F",
+      successBg: "#EAF5ED",
+    };
 
-  // ── MAIN ──
-  return h("div", { style:{minHeight:"100vh",background:"#f8fafc",paddingBottom:80} },
-    // Toast
-    toast && h("div", { style:{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:60,background:"#22c55e",color:"#fff",padding:"10px 24px",borderRadius:16,boxShadow:"0 4px 15px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",gap:8,fontSize:15,fontWeight:500} },
-      h(CheckIcon, { size:18, color:"#fff" }), " ", toast
-    ),
+    const baseBtn = {
+      border: "none",
+      borderRadius: "12px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontWeight: 600,
+      transition: "all 0.2s ease",
+    };
 
-    // Header
-    h("div", { className:"gradient-btn", style:{padding:"24px 24px 32px",borderRadius:"0 0 24px 24px"} },
-      h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,color:"#fff"} },
-        h("div", null,
-          h("p", { style:{color:"rgba(255,255,255,0.8)",fontSize:14} }, "Guten Abend"),
-          h("h1", { style:{fontSize:22,fontWeight:800} }, user?.name)
-        ),
-        h("div", { style:{background:"rgba(255,255,255,0.2)",borderRadius:20,padding:"4px 12px",display:"flex",alignItems:"center",gap:4,color:"#fff",fontSize:14} },
-          h(MapPinIcon, { size:14, color:"#fff" }), " ", CITY
-        )
-      ),
-      h("div", { style:{position:"relative"} },
-        h("div", { style:{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"} }, h(SearchIcon, { size:18, color:"#94a3b8" })),
-        h("input", { value:search, onChange:e=>setSearch(e.target.value), placeholder:"Suche nach Dinner oder Gastgeber...",
-          style:{width:"100%",padding:"12px 16px 12px 44px",borderRadius:16,border:"none",fontSize:15,outline:"none",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"} })
-      )
-    ),
+    function Navbar({ page, setPage }) {
+      return (
+        <nav style={{ background: colors.warmBg, borderBottom: `2px solid ${colors.cardBorder}`, padding: "0 24px", position: "sticky", top: 0, zIndex: 100 }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", color: colors.accent }} onClick={() => setPage("home")}>
+              <IconChef />
+              <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>NieAlleinEssen</span>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[{ key: "home", label: "Start" }, { key: "dinners", label: "Abendessen" }, { key: "create", label: "Einladen" }].map((item) => (
+                <button key={item.key} onClick={() => setPage(item.key)} style={{ ...baseBtn, padding: "8px 18px", fontSize: 15, background: page === item.key ? colors.accent : "transparent", color: page === item.key ? "#fff" : colors.text }}>{item.label}</button>
+              ))}
+            </div>
+          </div>
+        </nav>
+      );
+    }
 
-    // Tab Content
-    tab==="discover" && h("div", { className:"animate-fade" },
-      // Cuisine Filter
-      h("div", { className:"no-scrollbar", style:{display:"flex",gap:8,overflowX:"auto",padding:"16px 16px"} },
-        CUISINES.map(c =>
-          h("button", { key:c, onClick:()=>setFilter(c),
-            style:{padding:"8px 16px",borderRadius:20,fontSize:13,fontWeight:500,whiteSpace:"nowrap",border:filter===c?"none":"1px solid #e2e8f0",background:filter===c?"#f97316":"#fff",color:filter===c?"#fff":"#64748b",cursor:"pointer",transition:"all 0.2s"} },
-            FLAGS[c], " ", c
-          )
-        )
-      ),
+    function HeroSection({ setPage }) {
+      return (
+        <section style={{ background: `linear-gradient(135deg, ${colors.warmBg} 0%, ${colors.warmBgAlt} 100%)`, padding: "80px 24px 60px", textAlign: "center" }}>
+          <div style={{ maxWidth: 700, margin: "0 auto" }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>🍽️</div>
+            <h1 style={{ fontSize: 44, fontWeight: 800, color: colors.text, lineHeight: 1.15, margin: "0 0 16px" }}>Nie wieder <span style={{ color: colors.accent }}>alleine</span> essen.</h1>
+            <p style={{ fontSize: 20, color: colors.textMuted, lineHeight: 1.6, margin: "0 0 36px", maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>Finde Menschen in deiner Nähe, die gerne gemeinsam kochen und essen. Oder lade selbst zum Abendessen ein – es ist ganz einfach.</p>
+            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+              <button onClick={() => setPage("dinners")} style={{ ...baseBtn, padding: "14px 32px", fontSize: 17, background: colors.accent, color: "#fff", boxShadow: "0 4px 14px rgba(224,122,58,0.35)" }} onMouseEnter={(e) => (e.target.style.background = colors.accentHover)} onMouseLeave={(e) => (e.target.style.background = colors.accent)}>Abendessen finden</button>
+              <button onClick={() => setPage("create")} style={{ ...baseBtn, padding: "14px 32px", fontSize: 17, background: "#fff", color: colors.accent, border: `2px solid ${colors.accent}` }} onMouseEnter={(e) => (e.target.style.background = colors.accentLight)} onMouseLeave={(e) => (e.target.style.background = "#fff")}>Selbst einladen</button>
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 48, marginTop: 56, flexWrap: "wrap" }}>
+            {[{ num: "1.247", label: "Gemeinsame Essen" }, { num: "3.892", label: "Mitglieder" }, { num: "42", label: "Städte" }].map((s) => (
+              <div key={s.label} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: colors.accent }}>{s.num}</div>
+                <div style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
 
-      // Stats
-      h("div", { style:{padding:"0 16px",marginBottom:16} },
-        h("div", { style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12} },
-          [[s.dinners.length,"#f97316","Offene Dinner"],[USERS.length,"#e11d48","Aktive Nutzer"],[myDinners.length,"#9333ea","Deine Dinner"]].map(([n,c,l],i) =>
-            h("div", { key:i, className:"card-shadow", style:{background:"#fff",borderRadius:16,padding:12,textAlign:"center"} },
-              h("p", { style:{fontSize:22,fontWeight:800,color:c} }, n),
-              h("p", { style:{fontSize:11,color:"#94a3b8"} }, l)
-            )
-          )
-        )
-      ),
+    function HowItWorks() {
+      const steps = [
+        { emoji: "🔍", title: "Finde ein Abendessen", desc: "Stöbere durch offene Einladungen in deiner Stadt." },
+        { emoji: "✋", title: "Melde dich an", desc: "Klicke auf Teilnehmen – der Gastgeber freut sich auf dich." },
+        { emoji: "🍳", title: "Gemeinsam genießen", desc: "Koche, esse und lerne neue Menschen kennen." },
+      ];
+      return (
+        <section style={{ padding: "64px 24px", background: "#fff" }}>
+          <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+            <h2 style={{ fontSize: 30, fontWeight: 700, color: colors.text, margin: "0 0 40px" }}>So funktioniert's</h2>
+            <div style={{ display: "flex", gap: 32, justifyContent: "center", flexWrap: "wrap" }}>
+              {steps.map((s, i) => (
+                <div key={i} style={{ flex: "1 1 240px", maxWidth: 280, padding: 24, borderRadius: 16, background: colors.warmBg }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>{s.emoji}</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: colors.text, margin: "0 0 8px" }}>{s.title}</h3>
+                  <p style={{ fontSize: 15, color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
 
-      h("div", { style:{padding:"0 16px",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12} },
-        h("h2", { style:{fontSize:17,fontWeight:800,color:"#1e293b"} }, "Dinner in deiner Nähe"),
-        h("span", { style:{fontSize:13,color:"#f97316",fontWeight:500} }, filtered.length, " verfügbar")
-      ),
+    function DinnerCard({ dinner, onJoin }) {
+      const spotsLeft = dinner.maxGuests - dinner.guests.length;
+      const isFull = spotsLeft <= 0;
+      const dateObj = new Date(dinner.date + "T00:00:00");
+      const dateStr = dateObj.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
+      return (
+        <div style={{ background: colors.card, border: `1.5px solid ${colors.cardBorder}`, borderRadius: 18, padding: 24, display: "flex", flexDirection: "column", gap: 12, transition: "box-shadow 0.2s ease, transform 0.2s ease", cursor: "default" }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 8px 28px rgba(139,115,85,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ background: colors.accentLight, color: colors.accent, fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 20 }}>{dinner.cuisine}</span>
+            {isFull && <span style={{ background: "#fee", color: "#c44", fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 20 }}>Voll</span>}
+          </div>
+          <h3 style={{ fontSize: 19, fontWeight: 700, color: colors.text, margin: 0 }}>{dinner.title}</h3>
+          <p style={{ fontSize: 14, color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>{dinner.description}</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconClock /> {dateStr}, {dinner.time} Uhr</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconMapPin /> {dinner.district}, {dinner.city}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><IconUsers /> {dinner.guests.length}/{dinner.maxGuests} Gäste</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: colors.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: colors.accent }}>{dinner.host[0]}</div>
+            <span style={{ fontSize: 14, color: colors.text }}><strong>{dinner.host}</strong> lädt ein</span>
+          </div>
+          <div style={{ marginTop: 4 }}>
+            <div style={{ height: 6, borderRadius: 3, background: colors.warmBgAlt, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(dinner.guests.length / dinner.maxGuests) * 100}%`, background: isFull ? "#c44" : colors.success, borderRadius: 3, transition: "width 0.3s ease" }} />
+            </div>
+            <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>{isFull ? "Keine Plätze mehr frei" : `Noch ${spotsLeft} ${spotsLeft === 1 ? "Platz" : "Plätze"} frei`}</div>
+          </div>
+          <button onClick={() => !isFull && onJoin(dinner.id)} disabled={isFull} style={{ ...baseBtn, marginTop: 4, padding: "11px 0", fontSize: 15, background: isFull ? "#e0d6cc" : colors.accent, color: isFull ? "#a09080" : "#fff", cursor: isFull ? "not-allowed" : "pointer", width: "100%" }}
+            onMouseEnter={(e) => { if (!isFull) e.target.style.background = colors.accentHover; }}
+            onMouseLeave={(e) => { if (!isFull) e.target.style.background = colors.accent; }}>
+            {isFull ? "Ausgebucht" : "Teilnehmen"}
+          </button>
+        </div>
+      );
+    }
 
-      h("div", { style:{padding:"0 16px",display:"flex",flexDirection:"column",gap:16} },
-        filtered.map(d => {
-          const host=USERS.find(u=>u.id===d.hostId); const joined=d.attendees.includes(s.uid); const left=d.spots-d.attendees.length;
-          return h("div", { key:d.id, onClick:()=>setDetailId(d.id), className:"card-shadow", style:{background:"#fff",borderRadius:20,overflow:"hidden",cursor:"pointer",transition:"all 0.2s"} },
-            h("div", { style:{background:"linear-gradient(to right, #fff7ed, #fff1f2)",padding:16,display:"flex",justifyContent:"space-between",alignItems:"flex-start"} },
-              h("div", { style:{display:"flex",alignItems:"center",gap:12} },
-                h(Av, { user:host }),
-                h("div", null,
-                  h("p", { style:{fontWeight:600,color:"#1e293b"} }, host?.name),
-                  h("div", { style:{display:"flex",alignItems:"center",gap:4} }, h(StarIcon, { size:12 }), h("span", { style:{fontSize:12,color:"#94a3b8"} }, host?.rating))
-                )
-              ),
-              h("span", { style:{fontSize:24} }, d.flag)
-            ),
-            h("div", { style:{padding:16} },
-              h("h3", { style:{fontSize:17,fontWeight:700,color:"#1e293b",marginBottom:8} }, d.title),
-              h("p", { style:{fontSize:13,color:"#94a3b8",marginBottom:12} }, d.desc?.substring(0,80), "..."),
-              h("div", { style:{display:"flex",alignItems:"center",gap:16,fontSize:13,color:"#94a3b8",marginBottom:12} },
-                h("span", { style:{display:"flex",alignItems:"center",gap:4} }, h(ClockIcon, { size:14, color:"#fb923c" }), " ", d.date),
-                h("span", { style:{display:"flex",alignItems:"center",gap:4} }, h(MapPinIcon, { size:14, color:"#fb923c" }), " ", d.location)
-              ),
-              h("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center"} },
-                h("div", { style:{display:"flex",gap:6} }, d.tags.map(t => h("span", { key:t, style:{padding:"2px 8px",background:"#f1f5f9",color:"#64748b",borderRadius:12,fontSize:11} }, t))),
-                h("div", { style:{display:"flex",alignItems:"center",gap:8} },
-                  h("span", { style:{display:"flex",alignItems:"center",gap:4,fontSize:13} }, h(UsersIcon, { size:14, color:"#94a3b8" }), h("span", { style:{color:left<=1?"#ef4444":"#94a3b8",fontWeight:left<=1?600:400} }, left, " frei")),
-                  joined && h("span", { style:{background:"#dcfce7",color:"#16a34a",padding:"2px 8px",borderRadius:12,fontSize:11,fontWeight:500} }, "Dabei!")
-                )
-              )
-            )
-          );
-        }),
-        filtered.length===0 && h("div", { style:{textAlign:"center",padding:48} }, h("div", { style:{fontSize:48,marginBottom:16} }, "🍽️"), h("p", { style:{color:"#94a3b8",fontSize:17} }, "Keine Dinner gefunden"))
-      )
-    ),
-    tab==="favorites" && h("div", { className:"animate-fade", style:{textAlign:"center",padding:64} }, h("div", { style:{fontSize:48,marginBottom:16} }, "❤️"), h("h3", { style:{fontSize:17,fontWeight:700} }, "Favoriten"), h("p", { style:{color:"#94a3b8",marginTop:4} }, "Kommt bald!")),
-    tab==="chats" && h("div", { className:"animate-fade", style:{textAlign:"center",padding:64} }, h("div", { style:{fontSize:48,marginBottom:16} }, "💬"), h("h3", { style:{fontSize:17,fontWeight:700} }, "Chats"), h("p", { style:{color:"#94a3b8",marginTop:4} }, "Kommt bald!")),
-    tab==="profile" && h(ProfileTab),
+    function DinnersPage({ dinners, onJoin }) {
+      const [city, setCity] = useState("Alle Städte");
+      const [search, setSearch] = useState("");
+      const filtered = useMemo(() => {
+        return dinners.filter((d) => {
+          const matchCity = city === "Alle Städte" || d.city === city;
+          const matchSearch = search === "" || d.title.toLowerCase().includes(search.toLowerCase()) || d.description.toLowerCase().includes(search.toLowerCase());
+          return matchCity && matchSearch;
+        });
+      }, [dinners, city, search]);
+      return (
+        <section style={{ padding: "40px 24px 64px", background: colors.warmBg, minHeight: "60vh" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <h2 style={{ fontSize: 28, fontWeight: 700, color: colors.text, margin: "0 0 24px" }}>Offene Abendessen</h2>
+            <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
+              <input type="text" placeholder="Suche nach Abendessen..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: "1 1 240px", padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", outline: "none", background: "#fff" }} />
+              <select value={city} onChange={(e) => setCity(e.target.value)} style={{ padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", background: "#fff", cursor: "pointer" }}>
+                {CITIES.map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            {filtered.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: colors.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🍽️</div>
+                <p style={{ fontSize: 18 }}>Keine Abendessen gefunden. Lade doch selbst ein!</p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+                {filtered.map((d) => <DinnerCard key={d.id} dinner={d} onJoin={onJoin} />)}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    }
 
-    // FAB
-    tab==="discover" && h("button", { onClick:()=>setShowCreate(true), className:"gradient-btn",
-      style:{position:"fixed",bottom:88,right:20,width:56,height:56,borderRadius:"50%",border:"none",color:"#fff",cursor:"pointer",boxShadow:"0 4px 15px rgba(249,115,22,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:40} },
-      h(PlusIcon, { size:28, color:"#fff" })
-    ),
+    function CreateDinnerPage({ onCreate }) {
+      const [form, setForm] = useState({ title: "", description: "", date: "", time: "19:00", city: "Berlin", district: "", maxGuests: 4, cuisine: "Deutsch", host: "" });
+      const [submitted, setSubmitted] = useState(false);
+      const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!form.title || !form.date || !form.host || !form.district) return;
+        onCreate({ ...form, id: Date.now(), maxGuests: parseInt(form.maxGuests, 10), guests: [] });
+        setSubmitted(true);
+      };
+      if (submitted) {
+        return (
+          <section style={{ padding: "80px 24px", background: colors.warmBg, textAlign: "center", minHeight: "60vh" }}>
+            <div style={{ maxWidth: 480, margin: "0 auto", background: colors.successBg, borderRadius: 20, padding: 40 }}>
+              <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
+              <h2 style={{ fontSize: 26, fontWeight: 700, color: colors.success, margin: "0 0 12px" }}>Abendessen erstellt!</h2>
+              <p style={{ fontSize: 16, color: colors.textMuted, lineHeight: 1.5 }}>Dein Abendessen <strong>{"\u201E"}{form.title}{"\u201C"}</strong> ist jetzt sichtbar.</p>
+              <button onClick={() => { setForm({ title: "", description: "", date: "", time: "19:00", city: "Berlin", district: "", maxGuests: 4, cuisine: "Deutsch", host: "" }); setSubmitted(false); }} style={{ ...baseBtn, marginTop: 20, padding: "12px 28px", fontSize: 15, background: colors.success, color: "#fff" }}>Noch eins erstellen</button>
+            </div>
+          </section>
+        );
+      }
+      const inputStyle = { width: "100%", padding: "11px 14px", borderRadius: 12, border: `1.5px solid ${colors.cardBorder}`, fontSize: 15, fontFamily: "inherit", outline: "none", boxSizing: "border-box", background: "#fff" };
+      const labelStyle = { display: "block", fontSize: 14, fontWeight: 600, color: colors.text, marginBottom: 6 };
+      return (
+        <section style={{ padding: "40px 24px 64px", background: colors.warmBg, minHeight: "60vh" }}>
+          <div style={{ maxWidth: 600, margin: "0 auto" }}>
+            <h2 style={{ fontSize: 28, fontWeight: 700, color: colors.text, margin: "0 0 8px", display: "flex", alignItems: "center", gap: 10 }}><IconPlus /> Zum Abendessen einladen</h2>
+            <p style={{ fontSize: 15, color: colors.textMuted, margin: "0 0 28px" }}>Teile dein Essen und lerne neue Menschen kennen.</p>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20, background: "#fff", padding: 28, borderRadius: 18, border: `1.5px solid ${colors.cardBorder}` }}>
+              <div><label style={labelStyle}>Dein Name *</label><input type="text" placeholder="z.B. Maria" value={form.host} onChange={handleChange("host")} style={inputStyle} required /></div>
+              <div><label style={labelStyle}>Titel des Abendessens *</label><input type="text" placeholder="z.B. Pasta-Abend bei mir" value={form.title} onChange={handleChange("title")} style={inputStyle} required /></div>
+              <div><label style={labelStyle}>Beschreibung</label><textarea placeholder="Was wird gekocht? Was sollen Gäste mitbringen?" value={form.description} onChange={handleChange("description")} rows={3} style={{ ...inputStyle, resize: "vertical" }} /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div><label style={labelStyle}>Datum *</label><input type="date" value={form.date} onChange={handleChange("date")} style={inputStyle} required /></div>
+                <div><label style={labelStyle}>Uhrzeit</label><input type="time" value={form.time} onChange={handleChange("time")} style={inputStyle} /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div><label style={labelStyle}>Stadt *</label><select value={form.city} onChange={handleChange("city")} style={inputStyle}>{CITIES.filter((c) => c !== "Alle Städte").map((c) => <option key={c}>{c}</option>)}</select></div>
+                <div><label style={labelStyle}>Stadtteil *</label><input type="text" placeholder="z.B. Kreuzberg" value={form.district} onChange={handleChange("district")} style={inputStyle} required /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div><label style={labelStyle}>Max. Gäste</label><input type="number" min={1} max={20} value={form.maxGuests} onChange={handleChange("maxGuests")} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Küche</label><select value={form.cuisine} onChange={handleChange("cuisine")} style={inputStyle}>{["Deutsch", "Italienisch", "Thailändisch", "Japanisch", "Indisch", "Mexikanisch", "Mediterran", "Vegan", "Andere"].map((c) => <option key={c}>{c}</option>)}</select></div>
+              </div>
+              <button type="submit" style={{ ...baseBtn, padding: "14px 0", fontSize: 16, background: colors.accent, color: "#fff", marginTop: 4 }} onMouseEnter={(e) => (e.target.style.background = colors.accentHover)} onMouseLeave={(e) => (e.target.style.background = colors.accent)}>Abendessen veröffentlichen</button>
+            </form>
+          </div>
+        </section>
+      );
+    }
 
-    // Bottom Nav
-    h("div", { style:{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:"1px solid #f1f5f9",padding:"8px 24px",display:"flex",justifyContent:"space-around",alignItems:"center",zIndex:30} },
-      [
-        ["discover",h(UtensilsIcon, { size:20 }),"Entdecken"],
-        ["favorites",h(HeartIcon, { size:20 }),"Favoriten"],
-        ["chats",h(ChatIcon, { size:20 }),"Chats"],
-        ["profile",null,"Profil"],
-      ].map(([id,icon,label]) =>
-        h("button", { key:id, onClick:()=>setTab(id), style:{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",color:tab===id?"#f97316":"#94a3b8",transition:"color 0.2s"} },
-          icon || h(Av, { user:user, size:22 }),
-          h("span", { style:{fontSize:11,fontWeight:tab===id?600:400} }, label)
-        )
-      )
-    ),
+    function Footer() {
+      return (
+        <footer style={{ background: colors.text, color: "rgba(255,255,255,0.6)", padding: "40px 24px", textAlign: "center" }}>
+          <div style={{ maxWidth: 600, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12, color: colors.accent }}>
+              <IconHeart />
+              <span style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>NieAlleinEssen</span>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>Gemeinsam essen, gemeinsam leben. Eine Initiative gegen Einsamkeit – ein Abendessen nach dem anderen.</p>
+            <p style={{ fontSize: 12, marginTop: 16, opacity: 0.5 }}>© 2026 NieAlleinEssen. Mit Liebe gemacht.</p>
+          </div>
+        </footer>
+      );
+    }
 
-    showCreate && h(CreateModal)
-  );
-}
+    function JoinedToast({ name }) {
+      return (
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: colors.success, color: "#fff", padding: "14px 28px", borderRadius: 14, fontSize: 15, fontWeight: 600, zIndex: 999, boxShadow: "0 6px 20px rgba(90,158,111,0.4)", animation: "fadeInUp 0.3s ease" }}>
+          Du nimmst jetzt an „{name}" teil! 🎉
+        </div>
+      );
+    }
 
-ReactDOM.render(h(App), document.getElementById("root"));
-</script>
+    function App() {
+      const [page, setPage] = useState("home");
+      const [dinners, setDinners] = useState(SAMPLE_DINNERS);
+      const [toast, setToast] = useState(null);
+      const handleJoin = (id) => {
+        setDinners((prev) => prev.map((d) => {
+          if (d.id === id && d.guests.length < d.maxGuests) {
+            const names = ["Du", "Alex", "Sam", "Chris", "Pat"];
+            const name = names[Math.floor(Math.random() * names.length)];
+            return { ...d, guests: [...d.guests, name] };
+          }
+          return d;
+        }));
+        const dinner = dinners.find((d) => d.id === id);
+        if (dinner && dinner.guests.length < dinner.maxGuests) {
+          setToast(dinner.title);
+          setTimeout(() => setToast(null), 3000);
+        }
+      };
+      const handleCreate = (newDinner) => {
+        setDinners((prev) => [newDinner, ...prev]);
+        setPage("dinners");
+      };
+      return (
+        <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", color: colors.text, minHeight: "100vh", background: colors.warmBg }}>
+          <Navbar page={page} setPage={setPage} />
+          {page === "home" && (<><HeroSection setPage={setPage} /><HowItWorks /></>)}
+          {page === "dinners" && <DinnersPage dinners={dinners} onJoin={handleJoin} />}
+          {page === "create" && <CreateDinnerPage onCreate={handleCreate} />}
+          <Footer />
+          {toast && <JoinedToast name={toast} />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
 </body>
 </html>
