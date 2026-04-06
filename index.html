@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeverEatAlone</title>
     <style>
-        /* CSS: Hier wird das Design der App festgelegt */
+        /* CSS: Das Design der App */
         :root {
             --primary-color: #ff6b6b;
             --bg-color: #f7f9fc;
@@ -13,156 +13,30 @@
             --text-color: #333333;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-        }
-
-        p.subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        /* Formular Design */
-        .host-form {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-
-        .host-form h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #fa5252;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        /* Liste der Essen Design */
-        .meals-list h2 {
-            font-size: 1.2rem;
-        }
-
-        .meal-card {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            border-left: 5px solid var(--primary-color);
-        }
-
-        .meal-card h3 {
-            margin: 0 0 10px 0;
-            color: var(--primary-color);
-        }
-
-        .meal-details {
-            margin-bottom: 15px;
-            font-size: 0.95rem;
-        }
-
-        .meal-details span {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        /* Neues Design für die Gästeverwaltung */
-        details {
-            margin-top: 15px;
-            background-color: #f1f3f5;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        summary {
-            font-weight: bold;
-            cursor: pointer;
-            outline: none;
-            color: #495057;
-        }
-
-        ul.guest-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 10px 0 0 0;
-        }
-
-        ul.guest-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: white;
-            padding: 8px 10px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            border: 1px solid #e9ecef;
-        }
-
-        .remove-btn {
-            background-color: transparent;
-            color: #ff6b6b;
-            border: none;
-            padding: 0;
-            width: auto;
-            font-size: 1rem;
-            cursor: pointer;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; }
+        h1 { text-align: center; color: var(--primary-color); font-size: 2.5rem; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
         
-        .remove-btn:hover {
-            background-color: transparent;
-            transform: scale(1.2);
-        }
+        .host-form { background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .host-form h2 { margin-top: 0; font-size: 1.2rem; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #fa5252; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .meals-list h2 { font-size: 1.2rem; }
+        .meal-card { background-color: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid var(--primary-color); }
+        .meal-card h3 { margin: 0 0 10px 0; color: var(--primary-color); }
+        .meal-details { margin-bottom: 15px; font-size: 0.95rem; }
+        .meal-details span { display: block; margin-bottom: 5px; }
+        
+        details { margin-top: 15px; background-color: #f1f3f5; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
+        summary { font-weight: bold; cursor: pointer; outline: none; color: #495057; }
+        ul.guest-list { list-style-type: none; padding: 0; margin: 10px 0 0 0; }
+        ul.guest-list li { display: flex; justify-content: space-between; align-items: center; background-color: white; padding: 8px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #e9ecef; }
+        .remove-btn { background-color: transparent; color: #ff6b6b; border: none; padding: 0; width: auto; font-size: 1rem; cursor: pointer; }
+        .remove-btn:hover { background-color: transparent; transform: scale(1.2); }
     </style>
 </head>
 <body>
@@ -185,73 +59,100 @@
 
         <div class="meals-list">
             <h2>Aktuelle Angebote</h2>
-            <div id="mealsContainer">
-                </div>
+            <div id="mealsContainer">Lädt...</div>
         </div>
     </div>
 
-    <script>
-        // JavaScript: Hier passiert die Logik der App
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // Unsere "Pseudo-Datenbank" im Browser-Speicher (Array)
+        // Deine persönliche Firebase Konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAajXHXdw5QfuXwwrHwNb4yw6Y1J-MMfhY",
+            authDomain: "nevereatalone-4f0b2.firebaseapp.com",
+            projectId: "nevereatalone-4f0b2",
+            storageBucket: "nevereatalone-4f0b2.firebasestorage.app",
+            messagingSenderId: "95484820062",
+            appId: "1:95484820062:web:5a4416c32655daf02452cf"
+        };
+
+        // Firebase starten
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         let meals = [];
-
-        // Die Elemente aus dem HTML laden
         const addMealForm = document.getElementById('addMealForm');
         const mealsContainer = document.getElementById('mealsContainer');
 
-        // Funktion: Wenn das Formular abgeschickt wird
-        addMealForm.addEventListener('submit', function(event) {
+        // Daten live aus der Datenbank lesen
+        onSnapshot(collection(db, "meals"), (snapshot) => {
+            meals = []; 
+            snapshot.forEach((doc) => {
+                let mealData = doc.data();
+                mealData.id = doc.id; 
+                meals.push(mealData);
+            });
+            renderMeals(); 
+        });
+
+        // Ein neues Essen in die Datenbank schreiben
+        addMealForm.addEventListener('submit', async function(event) {
             event.preventDefault(); 
+            const submitBtn = event.target.querySelector('button');
+            submitBtn.disabled = true; 
 
             const newMeal = {
-                id: Date.now(), 
                 hostName: document.getElementById('hostName').value,
                 mealTitle: document.getElementById('mealTitle').value,
                 location: document.getElementById('location').value,
                 time: document.getElementById('time').value,
                 spots: parseInt(document.getElementById('spots').value),
-                guests: [] // NEU: Eine leere Liste für die Gäste
+                guests: [] 
             };
 
-            meals.push(newMeal);
+            await addDoc(collection(db, "meals"), newMeal);
+            
             addMealForm.reset();
-            renderMeals();
+            submitBtn.disabled = false; 
         });
 
-        // NEU: Funktion zum Teilnehmen (jetzt mit Namensabfrage)
-        function joinMeal(mealId) {
+        // Teilnahme in der Datenbank speichern
+        window.joinMeal = async function(mealId) {
             const meal = meals.find(m => m.id === mealId);
             
             if (meal && meal.spots > 0) {
-                // Den Nutzer nach seinem Namen fragen
                 const guestName = prompt("Wie lautet dein Name?");
                 
-                // Nur wenn ein Name eingegeben wurde...
                 if (guestName && guestName.trim() !== "") {
-                    meal.guests.push(guestName.trim()); // Gast zur Liste hinzufügen
-                    meal.spots -= 1; // Einen Platz abziehen
+                    const mealRef = doc(db, "meals", mealId);
+                    await updateDoc(mealRef, {
+                        spots: meal.spots - 1,
+                        guests: [...meal.guests, guestName.trim()] 
+                    });
                     alert("Erfolgreich angemeldet! Guten Appetit.");
-                    renderMeals(); // Anzeige aktualisieren
                 }
             }
         }
 
-        // NEU: Funktion, um einen Gast wieder zu entfernen
-        function removeGuest(mealId, guestIndex) {
+        // Gast in der Datenbank entfernen
+        window.removeGuest = async function(mealId, guestIndex) {
             const meal = meals.find(m => m.id === mealId);
             
             if (meal) {
-                // Den Gast aus der Liste löschen und seinen Namen merken
-                const removedGuest = meal.guests.splice(guestIndex, 1)[0];
-                meal.spots += 1; // Der Platz wird wieder frei
+                const updatedGuests = [...meal.guests];
+                const removedGuest = updatedGuests.splice(guestIndex, 1)[0];
                 
+                const mealRef = doc(db, "meals", mealId);
+                await updateDoc(mealRef, {
+                    spots: meal.spots + 1,
+                    guests: updatedGuests
+                });
                 alert(`${removedGuest} wurde von der Gästeliste entfernt.`);
-                renderMeals(); // Anzeige aktualisieren
             }
         }
 
-        // Funktion: Die Liste der Essen auf dem Bildschirm anzeigen
+        // Die Liste anzeigen
         function renderMeals() {
             mealsContainer.innerHTML = ''; 
 
@@ -267,13 +168,12 @@
                 const isFull = meal.spots === 0;
                 const buttonText = isFull ? 'Ausgebucht' : 'Teilnehmen';
                 
-                // NEU: Die Gästeliste als HTML generieren
                 let guestsHTML = '';
-                if (meal.guests.length > 0) {
+                if (meal.guests && meal.guests.length > 0) {
                     let listItems = meal.guests.map((guest, index) => {
                         return `<li>
                                   ${guest} 
-                                  <button class="remove-btn" onclick="removeGuest(${meal.id}, ${index})" title="Gast entfernen">❌</button>
+                                  <button class="remove-btn" onclick="removeGuest('${meal.id}', ${index})" title="Gast entfernen">❌</button>
                                 </li>`;
                     }).join('');
 
@@ -296,18 +196,16 @@
                         <span><strong>Freie Plätze:</strong> ${meal.spots}</span>
                     </div>
                     <button 
-                        onclick="joinMeal(${meal.id})" 
+                        onclick="joinMeal('${meal.id}')" 
                         ${isFull ? 'disabled' : ''}>
                         ${buttonText}
                     </button>
-                    ${guestsHTML} `;
+                    ${guestsHTML}
+                `;
 
                 mealsContainer.appendChild(card);
             });
         }
-
-        // App starten
-        renderMeals();
     </script>
 </body>
 </html>
