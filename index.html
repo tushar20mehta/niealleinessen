@@ -6,26 +6,27 @@
     <title>NeverEatAlone</title>
     <style>
         /* CSS: Das Design der App */
-        :root {
-            --primary-color: #ff6b6b;
-            --bg-color: #f7f9fc;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-        }
-
+        :root { --primary-color: #ff6b6b; --bg-color: #f7f9fc; --card-bg: #ffffff; --text-color: #333333; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .app-container { width: 100%; max-width: 500px; }
         h1 { text-align: center; color: var(--primary-color); font-size: 2.5rem; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
         
-        .host-form { background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .host-form h2 { margin-top: 0; font-size: 1.2rem; }
+        /* Auth und App Bereiche */
+        #authSection, #mainApp { background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        #mainApp { display: none; /* App ist anfangs versteckt */ background-color: transparent; box-shadow: none; padding: 0;}
+        
+        .card { background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card h2 { margin-top: 0; font-size: 1.2rem; }
+        
         input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
-        button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; margin-bottom: 10px; }
         button:hover { background-color: #fa5252; }
+        button.secondary { background-color: #f1f3f5; color: var(--text-color); }
+        button.secondary:hover { background-color: #e9ecef; }
+        button.logout-btn { background-color: #333; margin-bottom: 30px;}
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .meals-list h2 { font-size: 1.2rem; }
         .meal-card { background-color: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid var(--primary-color); }
         .meal-card h3 { margin: 0 0 10px 0; color: var(--primary-color); }
         .meal-details { margin-bottom: 15px; font-size: 0.95rem; }
@@ -36,38 +37,51 @@
         ul.guest-list { list-style-type: none; padding: 0; margin: 10px 0 0 0; }
         ul.guest-list li { display: flex; justify-content: space-between; align-items: center; background-color: white; padding: 8px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #e9ecef; }
         .remove-btn { background-color: transparent; color: #ff6b6b; border: none; padding: 0; width: auto; font-size: 1rem; cursor: pointer; }
-        .remove-btn:hover { background-color: transparent; transform: scale(1.2); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <h1>NeverEatAlone 🍽️</h1>
-        <p class="subtitle">Gemeinsam essen, statt alleine bleiben.</p>
+        <p class="subtitle" id="welcomeText">Gemeinsam essen, statt alleine bleiben.</p>
 
-        <div class="host-form">
-            <h2>Essen anbieten (Host werden)</h2>
-            <form id="addMealForm">
-                <input type="text" id="hostName" placeholder="Dein Name" required>
-                <input type="text" id="mealTitle" placeholder="Was gibt es zu essen? (z.B. Lasagne)" required>
-                <input type="text" id="location" placeholder="Wo? (z.B. Berlin, Kreuzberg)" required>
-                <input type="time" id="time" required>
-                <input type="number" id="spots" placeholder="Anzahl freie Plätze" min="1" max="20" required>
-                <button type="submit">Essen eintragen</button>
-            </form>
+        <div id="authSection">
+            <h2>Anmelden oder Registrieren</h2>
+            <input type="email" id="emailInput" placeholder="E-Mail Adresse" required>
+            <input type="password" id="passwordInput" placeholder="Passwort (min. 6 Zeichen)" required>
+            <button id="loginBtn">Einloggen</button>
+            <button id="registerBtn" class="secondary">Neu Registrieren</button>
+            <p id="authError" style="color: red; font-size: 0.9rem; display: none;"></p>
         </div>
 
-        <div class="meals-list">
-            <h2>Aktuelle Angebote</h2>
-            <div id="mealsContainer">Lädt...</div>
+        <div id="mainApp">
+            <button id="logoutBtn" class="logout-btn">Ausloggen</button>
+
+            <div class="card">
+                <h2>Essen anbieten</h2>
+                <form id="addMealForm">
+                    <input type="text" id="mealTitle" placeholder="Was gibt es zu essen? (z.B. Lasagne)" required>
+                    <input type="text" id="location" placeholder="Wo? (z.B. Berlin, Kreuzberg)" required>
+                    <input type="time" id="time" required>
+                    <input type="number" id="spots" placeholder="Anzahl freie Plätze" min="1" max="20" required>
+                    <button type="submit">Essen eintragen</button>
+                </form>
+            </div>
+
+            <div class="card" style="background: transparent; box-shadow: none; padding: 0;">
+                <h2>Aktuelle Angebote</h2>
+                <div id="mealsContainer">Lädt...</div>
+            </div>
         </div>
     </div>
 
     <script type="module">
+        // Firebase Funktionen (Inklusive Auth)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-        // Deine persönliche Firebase Konfiguration
+        // Deine Config
         const firebaseConfig = {
             apiKey: "AIzaSyAajXHXdw5QfuXwwrHwNb4yw6Y1J-MMfhY",
             authDomain: "nevereatalone-4f0b2.firebaseapp.com",
@@ -77,15 +91,72 @@
             appId: "1:95484820062:web:5a4416c32655daf02452cf"
         };
 
-        // Firebase starten
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // Auth initialisieren
 
         let meals = [];
-        const addMealForm = document.getElementById('addMealForm');
-        const mealsContainer = document.getElementById('mealsContainer');
+        let currentUser = null; // Speichert den aktuell eingeloggten Nutzer
 
-        // Daten live aus der Datenbank lesen
+        // UI Elemente
+        const authSection = document.getElementById('authSection');
+        const mainApp = document.getElementById('mainApp');
+        const welcomeText = document.getElementById('welcomeText');
+        const authError = document.getElementById('authError');
+
+        // --- AUTHENTIFIZIERUNG LOGIK ---
+
+        // Prüfen, ob jemand eingeloggt ist
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Eingeloggt! App anzeigen
+                currentUser = user;
+                authSection.style.display = 'none';
+                mainApp.style.display = 'block';
+                welcomeText.innerText = `Hallo, ${user.email.split('@')[0]}!`; // Zeigt den Teil vor dem @ an
+            } else {
+                // Ausgeloggt! Login anzeigen
+                currentUser = null;
+                authSection.style.display = 'block';
+                mainApp.style.display = 'none';
+                welcomeText.innerText = "Gemeinsam essen, statt alleine bleiben.";
+            }
+        });
+
+        // Registrieren
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                authError.style.display = 'none';
+            } catch (error) {
+                authError.innerText = "Fehler: " + error.message;
+                authError.style.display = 'block';
+            }
+        });
+
+        // Einloggen
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                authError.style.display = 'none';
+            } catch (error) {
+                authError.innerText = "Falsche E-Mail oder falsches Passwort.";
+                authError.style.display = 'block';
+            }
+        });
+
+        // Ausloggen
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+
+        // --- APP LOGIK (Datenbank) ---
+
         onSnapshot(collection(db, "meals"), (snapshot) => {
             meals = []; 
             snapshot.forEach((doc) => {
@@ -96,14 +167,14 @@
             renderMeals(); 
         });
 
-        // Ein neues Essen in die Datenbank schreiben
-        addMealForm.addEventListener('submit', async function(event) {
+        document.getElementById('addMealForm').addEventListener('submit', async function(event) {
             event.preventDefault(); 
             const submitBtn = event.target.querySelector('button');
             submitBtn.disabled = true; 
 
             const newMeal = {
-                hostName: document.getElementById('hostName').value,
+                hostName: currentUser.email.split('@')[0], // Host ist jetzt automatisch der eingeloggte User
+                hostEmail: currentUser.email,
                 mealTitle: document.getElementById('mealTitle').value,
                 location: document.getElementById('location').value,
                 time: document.getElementById('time').value,
@@ -113,33 +184,38 @@
 
             await addDoc(collection(db, "meals"), newMeal);
             
-            addMealForm.reset();
+            document.getElementById('addMealForm').reset();
             submitBtn.disabled = false; 
         });
 
-        // Teilnahme in der Datenbank speichern
         window.joinMeal = async function(mealId) {
             const meal = meals.find(m => m.id === mealId);
+            // Verhindern, dass man sich beim eigenen Essen anmeldet
+            if(meal.hostEmail === currentUser.email) {
+                alert("Du bist der Host dieses Essens!");
+                return;
+            }
+            // Verhindern, dass man sich doppelt anmeldet
+            if(meal.guests.includes(currentUser.email)) {
+                alert("Du bist bereits angemeldet!");
+                return;
+            }
             
             if (meal && meal.spots > 0) {
-                const guestName = prompt("Wie lautet dein Name?");
-                
-                if (guestName && guestName.trim() !== "") {
-                    const mealRef = doc(db, "meals", mealId);
-                    await updateDoc(mealRef, {
-                        spots: meal.spots - 1,
-                        guests: [...meal.guests, guestName.trim()] 
-                    });
-                    alert("Erfolgreich angemeldet! Guten Appetit.");
-                }
+                const mealRef = doc(db, "meals", mealId);
+                await updateDoc(mealRef, {
+                    spots: meal.spots - 1,
+                    guests: [...meal.guests, currentUser.email] // Speichert die E-Mail des Gastes
+                });
+                alert("Erfolgreich angemeldet! Guten Appetit.");
             }
         }
 
-        // Gast in der Datenbank entfernen
         window.removeGuest = async function(mealId, guestIndex) {
             const meal = meals.find(m => m.id === mealId);
             
-            if (meal) {
+            // Nur der Host darf Gäste entfernen
+            if (meal && meal.hostEmail === currentUser.email) {
                 const updatedGuests = [...meal.guests];
                 const removedGuest = updatedGuests.splice(guestIndex, 1)[0];
                 
@@ -148,12 +224,14 @@
                     spots: meal.spots + 1,
                     guests: updatedGuests
                 });
-                alert(`${removedGuest} wurde von der Gästeliste entfernt.`);
+                alert("Gast wurde von der Liste entfernt.");
+            } else {
+                alert("Nur der Host kann Gäste verwalten.");
             }
         }
 
-        // Die Liste anzeigen
         function renderMeals() {
+            const mealsContainer = document.getElementById('mealsContainer');
             mealsContainer.innerHTML = ''; 
 
             if (meals.length === 0) {
@@ -166,20 +244,31 @@
                 card.className = 'meal-card';
 
                 const isFull = meal.spots === 0;
-                const buttonText = isFull ? 'Ausgebucht' : 'Teilnehmen';
+                let buttonText = isFull ? 'Ausgebucht' : 'Teilnehmen';
+                let disableJoin = isFull;
                 
+                // Button Text anpassen, falls man schon angemeldet ist
+                if(currentUser && meal.guests.includes(currentUser.email)) {
+                    buttonText = "Du nimmst teil ✅";
+                    disableJoin = true;
+                }
+
                 let guestsHTML = '';
+                // Gästeliste nur anzeigen, wenn man der Host ist oder man angemeldet ist
                 if (meal.guests && meal.guests.length > 0) {
-                    let listItems = meal.guests.map((guest, index) => {
-                        return `<li>
-                                  ${guest} 
-                                  <button class="remove-btn" onclick="removeGuest('${meal.id}', ${index})" title="Gast entfernen">❌</button>
-                                </li>`;
+                    let listItems = meal.guests.map((guestEmail, index) => {
+                        const guestName = guestEmail.split('@')[0];
+                        // X-Button nur für den Host
+                        const removeBtn = (currentUser && meal.hostEmail === currentUser.email) 
+                            ? `<button class="remove-btn" onclick="removeGuest('${meal.id}', ${index})" title="Gast entfernen">❌</button>`
+                            : '';
+                            
+                        return `<li>${guestName} ${removeBtn}</li>`;
                     }).join('');
 
                     guestsHTML = `
                         <details>
-                            <summary>Gäste verwalten (${meal.guests.length})</summary>
+                            <summary>Gäste ansehen (${meal.guests.length})</summary>
                             <ul class="guest-list">
                                 ${listItems}
                             </ul>
@@ -197,7 +286,7 @@
                     </div>
                     <button 
                         onclick="joinMeal('${meal.id}')" 
-                        ${isFull ? 'disabled' : ''}>
+                        ${disableJoin ? 'disabled' : ''}>
                         ${buttonText}
                     </button>
                     ${guestsHTML}
